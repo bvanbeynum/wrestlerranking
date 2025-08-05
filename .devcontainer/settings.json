@@ -1,0 +1,7 @@
+{
+	"mcpServers": {
+		"mssql": {
+			"url": "http://dreher.beynum.com:3333/sse"
+		}
+	}
+}
