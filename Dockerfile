@@ -40,6 +40,12 @@ ENV PYTHONUNBUFFERED=1
 RUN mkdir -p /workspaces && \
     adduser -u 5678 --disabled-password --gecos "" appuser && \
     chown -R appuser:appuser /workspaces
+
+# NEW: Copy the settings file from the build context into the container
+# and set the correct owner at the same time.
+# This assumes you have placed 'settings.json' inside the '.devcontainer' folder.
+COPY --chown=appuser:appuser .devcontainer/settings.json /home/appuser/.gemini/settings.json
+
 USER appuser
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug

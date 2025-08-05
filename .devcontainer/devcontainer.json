@@ -31,35 +31,13 @@
   // The 'workspaceFolder' property tells VS Code where in the container to open it.
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
-  // 5. MOUNT ADDITIONAL LOCAL FILES
-  // Use 'mounts' to add other local files or folders into the container.
-  "mounts": [
-    // This mounts your local settings.json into the container.
-    // 'source' is the path on your local machine. ${localEnv:HOME} is a variable for your home directory.
-    // 'target' is the path inside the container.
-    // 'type=bind' means it's a direct link to your local file.
-    // 'readonly' prevents the container from writing changes back to your local file.
-    "source=${localEnv:HOME}/.gemini/settings.json,target=/home/appuser/.gemini/settings.json,type=bind,readonly"
-  ],
-
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
         "ms-python.debugpy",
-        "ms-python.vscode-pylance",
-        "google.geminicodeassist",
-        "ms-mssql.data-workspace-vscode",
-        "ms-mssql.sql-bindings-vscode",
-        "ms-mssql.sql-database-projects-vscode",
-        "ms-mssql.mssql"
+        "ms-python.vscode-pylance"
       ]
     }
   }
-
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
 }
