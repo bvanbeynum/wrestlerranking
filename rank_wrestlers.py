@@ -66,8 +66,11 @@ for weekEnd in sorted(matchesByWeek.keys()):
 	for playerID, results in playerResults.items():
 		if results:
 			players[playerID].rate(results)
-			# Log the rating change
-			execute_query(connection, "insert_wrestler_rating", (playerID, weekEnd, players[playerID].rating, players[playerID].rd))
+		else:
+			# If no matches, just update the rating deviation for inactivity
+			players[playerID].update_rating_deviation()
+		# Log the rating change for all players (active or inactive)
+		execute_query(connection, "insert_wrestler_rating", (playerID, weekEnd, players[playerID].rating, players[playerID].rd))
 
 # 5. Update wrestler ratings
 for playerID, player in players.items():
