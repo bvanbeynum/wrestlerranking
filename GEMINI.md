@@ -90,8 +90,8 @@ Javascript Coding Guidelines:
 - Prefer async/await for asynchronous operations over Promises.
 
 Python Coding Guidelines:
+- Prefer inline scripts that avoid the top level main function.
 - Use f-strings for string formatting.
-- Prefer inline scripts taht avoid the top level main function.
 - Print statements used for debugging should include the date/time at the beginning of the statement.
 - Prefer list comprehensions for simple iterations.
 
@@ -101,6 +101,7 @@ SQL Coding Guidelines:
 - Do not add a line break after keywords like select and from; use a tab instead.
 - Use two tabs to indent lines that do not start with a keyword.
 - Do not indent join or on clauses. Use two tabs after the on clause.
+- On keyword should be on the next line after the join keyword and should not be indented, but condition should have 2 tabs after the on keyword
 - For column aliases, use Alias = expression format
 - Use leading commas in select statements and other lists to improve readability.
 - For table names, use nouns and prefer the singular version of the noun.
