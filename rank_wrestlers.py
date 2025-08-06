@@ -47,20 +47,25 @@ currentDate = lastProcessedDate if lastProcessedDate else minDate
 # Loop through each week from the start date to the max date.
 while currentDate <= maxDate:
 	weekEnd = currentDate + timedelta(days=6 - currentDate.weekday())
+	activityStartDate = currentDate - timedelta(days=365)
 
 	print(f"{datetime.now()}: Processing matches for week ending {weekEnd.strftime('%Y-%m-%d')}")
 
-	# Get all wrestlers and their latest ratings.
-	wrestlers = executeQuery(connection, "get_wrestlers")
+	# Get the set of active wrestlers for the current week.
+	activeWrestlerRows = executeQuery(connection, "get_active_wrestlers_for_period", (weekEnd, activityStartDate))
+	activeWrestlers = {row.EventWrestlerID for row in activeWrestlerRows}
+
+	# Get the latest ratings for the active wrestlers.
 	players = {}
 	latestRatings = executeQuery(connection, "get_latest_wrestler_ratings")
 	for rating in latestRatings:
-		players[rating.EventWrestlerID] = glicko2.Player(rating=rating.Rating, rd=rating.Deviation)
+		if rating.EventWrestlerID in activeWrestlers:
+			players[rating.EventWrestlerID] = glicko2.Player(rating=rating.Rating, rd=rating.Deviation)
 
-	# Initialize any new wrestlers with default ratings.
-	for wrestler in wrestlers:
-		if wrestler.ID not in players:
-			players[wrestler.ID] = glicko2.Player(rating=1500, rd=500, vol=0.06)
+	# Initialize any new active wrestlers with default ratings.
+	for wrestlerId in activeWrestlers:
+		if wrestlerId not in players:
+			players[wrestlerId] = glicko2.Player(rating=1500, rd=500, vol=0.06)
 
 	# Get the match outcomes for the current week.
 	weeklyMatchOutcomes = executeQuery(connection, "get_weekly_match_outcomes", (currentDate, weekEnd))
@@ -71,14 +76,15 @@ while currentDate <= maxDate:
 		winnerId = outcome.WinnerID
 		loserId = outcome.LoserID
 
-		winner = players[winnerId]
-		loser = players[loserId]
+		if winnerId in activeWrestlers and loserId in activeWrestlers:
+			winner = players[winnerId]
+			loser = players[loserId]
 
-		# Append the opponent's rating, RD, and the outcome (1 for win, 0 for loss).
-		playerResults[winnerId].append((loser.rating, loser.rd, 1))
-		playerResults[loserId].append((winner.rating, winner.rd, 0))
+			# Append the opponent's rating, RD, and the outcome (1 for win, 0 for loss).
+			playerResults[winnerId].append((loser.rating, loser.rd, 1))
+			playerResults[loserId].append((winner.rating, winner.rd, 0))
 
-	# Update the Glicko-2 ratings for all players for the week.
+	# Update the Glicko-2 ratings for all active players for the week.
 	for playerId, results in playerResults.items():
 		if results:
 			# If the player competed, update their rating based on the results.

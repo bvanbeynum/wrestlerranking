@@ -1,4 +1,4 @@
 select
-	max(RatingDate)
+	max(PeriodEndDate)
 from
 	WrestlerRating

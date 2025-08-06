@@ -1,5 +1,10 @@
 select
-	min(EventDate) as minDate,
-	max(EventDate) as maxDate
+	minDate = min(Event.EventDate)
+	, maxDate = max(Event.EventDate)
 from
-	EventMatch;
+	Event
+join EventMatch
+on
+		Event.ID = EventMatch.EventID
+where
+		Event.EventDate < getdate();
