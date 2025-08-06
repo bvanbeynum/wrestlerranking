@@ -5,12 +5,13 @@
   // This is the custom name for your container.
   // Note: Docker requires container names to be unique. If you try to run another
   // container with this same name, it will fail.
-  "name": "WrestlerRanking",
+  "name": "WrestleScripts",
 
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   "build": {
     // Path is relative to the devcontainer.json file.
-    "dockerfile": "../Dockerfile"
+    "context": "..",
+    "dockerfile": "Dockerfile"
   },
 
   // 2. SET CONTAINER PROPERTIES (LIKE NETWORK)
