@@ -5,10 +5,12 @@ import json
 import glicko2
 from datetime import datetime, timedelta
 
-def executeQuery(connection, queryName, parameters=None):
-	"""Executes a SQL query from the sqlQueries dictionary."""
+def executeQuery(connection, queryName, parameters=None, many=False):
+	"""Executes a SQL query from the sqlQueries dictionary, with optional batch execution."""
 	with connection.cursor() as cursor:
-		if parameters:
+		if many:
+			cursor.executemany(sqlQueries[queryName], parameters)
+		elif parameters:
 			cursor.execute(sqlQueries[queryName], parameters)
 		else:
 			cursor.execute(sqlQueries[queryName])
@@ -97,12 +99,16 @@ while currentDate <= maxDate:
 			ratings, rds, outcomes = zip(*results)
 			players[playerId].update_player(ratings, rds, outcomes)
 
-		# Log the new rating to the database for historical tracking.
-		executeQuery(connection, "insert_wrestler_rating", (playerId, weekEnd, players[playerId].rating, players[playerId].rd))
-
-	# Update the wrestler's main rating in the EventWrestler table.
+	# Prepare batch inserts for wrestler ratings and updates for event wrestlers.
+	insert_wrestler_rating_params = []
+	update_event_wrestler_params = []
 	for playerId, player in players.items():
-		executeQuery(connection, "update_event_wrestler", (player.rating, player.rd, playerId))
+		insert_wrestler_rating_params.append((playerId, weekEnd, player.rating, player.rd))
+		update_event_wrestler_params.append((player.rating, player.rd, playerId))
+
+	# Execute batch inserts and updates.
+	executeQuery(connection, "insert_wrestler_rating", insert_wrestler_rating_params, many=True)
+	executeQuery(connection, "update_event_wrestler", update_event_wrestler_params, many=True)
 
 	print(f"{datetime.now()}: Finished processing for week ending {weekEnd.strftime('%Y-%m-%d')}")
 
