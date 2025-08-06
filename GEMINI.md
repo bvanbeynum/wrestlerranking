@@ -70,7 +70,7 @@ Key Conventions:
 6. Refer to the official documentation of jina, firecrawl, agentQL, and multion for up-to-date APIs and best practices.
 7. Use the latest information from the web to get up-to-date information on errors and tools
 
-General Coding Style:
+Python Coding Style:
 - Always use tabs over spaces. If code has spaces indentation, convert to tabs
 - Always use descriptive naming. Never use single-letter variable names.
 - Use meaningful variable names that describe the purpose of the variable.
@@ -78,18 +78,6 @@ General Coding Style:
 - Prefer double quotes over single quotes.
 - Use camel case as the default for programming languages unless overridden for a specific language.
 - Write comments for code that is not self-explanatory. Explain why you are doing something, not what you are doing.
-
-Javascript Coding Guidelines:
-- Use const and let: Declare variables with const by default. Only use let if the variable's value needs to be reassigned. Avoid using var.
-- Always use semicolons at the end of statements.
-- Use arror functions for callbacks.
-- Avoid using global variables.
-- Embrace modern Javascript features like arrow functions, destructuring, and spread operators.
-- Use template literals for string concatenation.
-- Use object and array destructuring to extract values cleanly.
-- Prefer async/await for asynchronous operations over Promises.
-
-Python Coding Guidelines:
 - Prefer inline scripts that avoid the top level main function.
 - Use f-strings for string formatting.
 - Print statements used for debugging should include the date/time at the beginning of the statement.
