@@ -1,12 +1,12 @@
-insert into	WrestlerRating (
-		EventWrestlerID
-		, PeriodEndDate
-		, Rating
-		, Deviation
+insert into WrestlerRating (
+	EventWrestlerID
+	, PeriodEndDate
+	, Rating
+	, Deviation
 )
 values	(
-		@EventWrestlerID
-		, @PeriodEndDate
-		, @Rating
-		, @Deviation
+	@EventWrestlerID
+	, @PeriodEndDate
+	, @Rating
+	, @Deviation
 );

@@ -1,4 +1,7 @@
-update	EventWrestler
-set		GlickoRating = @GlickoRating
-		, GlickoDeviation = @GlickoDeviation
-where	ID = @ID;
+update
+	EventWrestler
+set
+	GlickoRating = @GlickoRating
+	, GlickoDeviation = @GlickoDeviation
+where
+	ID = @ID;

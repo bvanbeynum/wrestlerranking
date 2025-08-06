@@ -3,9 +3,10 @@ import os
 import pyodbc
 import json
 import glicko2
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-def execute_query(connection, queryName, parameters=None):
+def executeQuery(connection, queryName, parameters=None):
+	"""Executes a SQL query from the sqlQueries dictionary."""
 	with connection.cursor() as cursor:
 		if parameters:
 			cursor.execute(sqlQueries[queryName], parameters)
@@ -13,68 +14,95 @@ def execute_query(connection, queryName, parameters=None):
 			cursor.execute(sqlQueries[queryName])
 		return cursor.fetchall()
 
+# Load SQL queries from files into a dictionary for easy access.
 sqlQueries = {}
 for fileName in os.listdir("sql"):
 	if fileName.endswith(".sql"):
 		with open(os.path.join("sql", fileName), "r") as fileObject:
 			sqlQueries[fileName.replace(".sql", "")] = fileObject.read()
 
+# Load database configuration from an external JSON file.
 with open("config.json", "r") as fileObject:
 	config = json.load(fileObject)
 
-db_config = config["database"]
-conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={db_config['server']};DATABASE={db_config['database']};UID={db_config['user']};PWD={db_config['password']}"
-connection = pyodbc.connect(conn_str)
+# Construct the database connection string.
+dbConfig = config["database"]
+connectionString = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={dbConfig['server']};DATABASE={dbConfig['database']};UID={dbConfig['user']};PWD={dbConfig['password']}"
 
-# 1. Get all wrestlers
-wrestlers = execute_query(connection, "get_wrestlers")
+# Establish the database connection.
+connection = pyodbc.connect(connectionString)
 
-# 2. Get all matches
-matches = execute_query(connection, "get_matches")
+# Get the date range of all matches.
+dateRangeResult = executeQuery(connection, "get_match_date_range")[0]
+minDate = dateRangeResult.minDate
+maxDate = dateRangeResult.maxDate
 
-# 3. Get match winner and loser
-matchResults = execute_query(connection, "get_match_winner_and_loser")
+# To make the script restartable, get the last date that was processed.
+lastProcessedDateResult = executeQuery(connection, "get_last_processed_date")
+lastProcessedDate = lastProcessedDateResult[0][0] if lastProcessedDateResult and lastProcessedDateResult[0][0] else None
 
-# 4. Glicko-2 calculation
-# Initialize wrestlers with default ratings
-players = {row.ID: glicko2.Player(rating=1500, rd=500, vol=0.06) for row in wrestlers}
+# Set the start date for processing.
+currentDate = lastProcessedDate if lastProcessedDate else minDate
 
-# Group matches by week
-matchesByWeek = {}
-for match in matches:
-	eventDate = match.EventDate
-	weekEnd = eventDate + timedelta(days=6 - eventDate.weekday())
-	if weekEnd not in matchesByWeek:
-		matchesByWeek[weekEnd] = []
-	matchesByWeek[weekEnd].append(match)
+# Loop through each week from the start date to the max date.
+while currentDate <= maxDate:
+	weekEnd = currentDate + timedelta(days=6 - currentDate.weekday())
 
-# Process matches week by week
-for weekEnd in sorted(matchesByWeek.keys()):
-	# Create a list of match results for each player for the current week
-	playerResults = {playerID: [] for playerID in players.keys()}
-	for match in matchesByWeek[weekEnd]:
-		winnerID = [result.WinnerID for result in matchResults if result.EventMatchID == match.ID][0]
-		loserID = [result.LoserID for result in matchResults if result.EventMatchID == match.ID][0]
+	print(f"{datetime.now()}: Processing matches for week ending {weekEnd.strftime('%Y-%m-%d')}")
 
-		winner = players[winnerID]
-		loser = players[loserID]
+	# Get all wrestlers and their latest ratings.
+	wrestlers = executeQuery(connection, "get_wrestlers")
+	players = {}
+	latestRatings = executeQuery(connection, "get_latest_wrestler_ratings")
+	for rating in latestRatings:
+		players[rating.EventWrestlerID] = glicko2.Player(rating=rating.Rating, rd=rating.Deviation)
 
-		playerResults[winnerID].append((loser.rating, loser.rd, 1))
-		playerResults[loserID].append((winner.rating, winner.rd, 0))
+	# Initialize any new wrestlers with default ratings.
+	for wrestler in wrestlers:
+		if wrestler.ID not in players:
+			players[wrestler.ID] = glicko2.Player(rating=1500, rd=500, vol=0.06)
 
-	# Update ratings for the week
-	for playerID, results in playerResults.items():
+	# Get the match outcomes for the current week.
+	weeklyMatchOutcomes = executeQuery(connection, "get_weekly_match_outcomes", (currentDate, weekEnd))
+
+	# Store the results for each player for the current week.
+	playerResults = {playerId: [] for playerId in players.keys()}
+	for outcome in weeklyMatchOutcomes:
+		winnerId = outcome.WinnerID
+		loserId = outcome.LoserID
+
+		winner = players[winnerId]
+		loser = players[loserId]
+
+		# Append the opponent's rating, RD, and the outcome (1 for win, 0 for loss).
+		playerResults[winnerId].append((loser.rating, loser.rd, 1))
+		playerResults[loserId].append((winner.rating, winner.rd, 0))
+
+	# Update the Glicko-2 ratings for all players for the week.
+	for playerId, results in playerResults.items():
 		if results:
-			players[playerID].rate(results)
+			# If the player competed, update their rating based on the results.
+			players[playerId].rate(results)
 		else:
-			# If no matches, just update the rating deviation for inactivity
-			players[playerID].update_rating_deviation()
-		# Log the rating change for all players (active or inactive)
-		execute_query(connection, "insert_wrestler_rating", (playerID, weekEnd, players[playerID].rating, players[playerID].rd))
+			# If the player was inactive, the glicko2 library handles the RD increase.
+			players[playerId].update_rating_deviation()
 
-# 5. Update wrestler ratings
-for playerID, player in players.items():
-	execute_query(connection, "update_event_wrestler", (player.rating, player.rd, playerID))
+		# Log the new rating to the database for historical tracking.
+		executeQuery(connection, "insert_wrestler_rating", (playerId, weekEnd, players[playerId].rating, players[playerId].rd))
 
+	# Update the wrestler's main rating in the EventWrestler table.
+	for playerId, player in players.items():
+		executeQuery(connection, "update_event_wrestler", (player.rating, player.rd, playerId))
+
+	# Commit the changes for the week to the database.
+	connection.commit()
+	print(f"{datetime.now()}: Finished processing for week ending {weekEnd.strftime('%Y-%m-%d')}")
+
+	# Move to the next week.
+	currentDate = weekEnd + timedelta(days=1)
+
+# Close the connection.
 connection.close()
+
+print(f"{datetime.now()}: Wrestler rating process completed.")
 
