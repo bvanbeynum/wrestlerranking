@@ -7,6 +7,7 @@ Key Principles:
 - Prioritize readability, efficiency, and maintainability in scraping workflows.
 - Use modular and reusable functions to handle common scraping tasks.
 - Handle dynamic and complex websites using appropriate tools (e.g., Selenium, agentQL).
+- Code modifications should only modify the lines necessary and 
 
 General Web Scraping:
 - Use requests for simple HTTP GET/POST requests to static websites.
