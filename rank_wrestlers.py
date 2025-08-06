@@ -12,7 +12,9 @@ def executeQuery(connection, queryName, parameters=None):
 			cursor.execute(sqlQueries[queryName], parameters)
 		else:
 			cursor.execute(sqlQueries[queryName])
-		return cursor.fetchall()
+		if cursor.description:
+			return cursor.fetchall()
+		return None
 
 # Load SQL queries from files into a dictionary for easy access.
 sqlQueries = {}
@@ -27,10 +29,10 @@ with open("config.json", "r") as fileObject:
 
 # Construct the database connection string.
 dbConfig = config["database"]
-connectionString = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={dbConfig['server']};DATABASE={dbConfig['database']};UID={dbConfig['user']};PWD={dbConfig['password']}"
+connectionString = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={dbConfig['server']};DATABASE={dbConfig['database']};UID={dbConfig['user']};PWD={dbConfig['password']};ENCRYPT=no"
 
 # Establish the database connection.
-connection = pyodbc.connect(connectionString)
+connection = pyodbc.connect(connectionString, autocommit=True)
 
 # Get the date range of all matches.
 dateRangeResult = executeQuery(connection, "get_match_date_range")[0]
@@ -42,7 +44,7 @@ lastProcessedDateResult = executeQuery(connection, "get_last_processed_date")
 lastProcessedDate = lastProcessedDateResult[0][0] if lastProcessedDateResult and lastProcessedDateResult[0][0] else None
 
 # Set the start date for processing.
-currentDate = lastProcessedDate if lastProcessedDate else minDate
+currentDate = lastProcessedDate + timedelta(days=1) if lastProcessedDate else minDate
 
 # Loop through each week from the start date to the max date.
 while currentDate <= maxDate:
@@ -60,7 +62,7 @@ while currentDate <= maxDate:
 	latestRatings = executeQuery(connection, "get_latest_wrestler_ratings")
 	for rating in latestRatings:
 		if rating.EventWrestlerID in activeWrestlers:
-			players[rating.EventWrestlerID] = glicko2.Player(rating=rating.Rating, rd=rating.Deviation)
+			players[rating.EventWrestlerID] = glicko2.Player(rating=float(rating.Rating), rd=float(rating.Deviation))
 
 	# Initialize any new active wrestlers with default ratings.
 	for wrestlerId in activeWrestlers:
@@ -85,13 +87,15 @@ while currentDate <= maxDate:
 			playerResults[loserId].append((winner.rating, winner.rd, 0))
 
 	# Update the Glicko-2 ratings for all active players for the week.
+	for playerId, player in players.items():
+		# Adjust RD for inactivity before processing games
+		player._preRatingRD()
+
 	for playerId, results in playerResults.items():
 		if results:
 			# If the player competed, update their rating based on the results.
-			players[playerId].rate(results)
-		else:
-			# If the player was inactive, the glicko2 library handles the RD increase.
-			players[playerId].update_rating_deviation()
+			ratings, rds, outcomes = zip(*results)
+			players[playerId].update_player(ratings, rds, outcomes)
 
 		# Log the new rating to the database for historical tracking.
 		executeQuery(connection, "insert_wrestler_rating", (playerId, weekEnd, players[playerId].rating, players[playerId].rd))
@@ -100,8 +104,6 @@ while currentDate <= maxDate:
 	for playerId, player in players.items():
 		executeQuery(connection, "update_event_wrestler", (player.rating, player.rd, playerId))
 
-	# Commit the changes for the week to the database.
-	connection.commit()
 	print(f"{datetime.now()}: Finished processing for week ending {weekEnd.strftime('%Y-%m-%d')}")
 
 	# Move to the next week.

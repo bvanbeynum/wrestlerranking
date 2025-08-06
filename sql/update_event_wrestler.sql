@@ -1,7 +1,7 @@
 update
 	EventWrestler
 set
-	GlickoRating = @GlickoRating
-	, GlickoDeviation = @GlickoDeviation
+	GlickoRating = ?
+	, GlickoDeviation = ?
 where
-	ID = @ID;
+	ID = ?;

@@ -5,8 +5,8 @@ insert into WrestlerRating (
 	, Deviation
 )
 values	(
-	@EventWrestlerID
-	, @PeriodEndDate
-	, @Rating
-	, @Deviation
+	?
+	, ?
+	, ?
+	, ?
 );
