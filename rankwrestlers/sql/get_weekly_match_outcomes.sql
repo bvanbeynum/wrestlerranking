@@ -1,6 +1,7 @@
 select
 	WinnerID = Winner.EventWrestlerID
 	, LoserID = Loser.EventWrestlerID
+	, EventMatch.WinType
 from
 	EventWrestlerMatch
 join EventWrestlerMatch as Winner
@@ -14,4 +15,5 @@ join EventMatch
 join Event
 	on EventMatch.EventID = Event.ID
 where
-	Event.EventDate between ? and ?;
+	Event.EventDate between ? and ?
+	and EventMatch.WinType not in ('bye', 'for', 'nc');

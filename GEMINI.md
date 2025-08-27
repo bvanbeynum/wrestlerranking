@@ -64,12 +64,11 @@ Dependencies:
 
 Key Conventions:
 1. Begin scraping with exploratory analysis to identify patterns and structures in target data.
-2. Modularize scraping logic into clear and reusable functions.
-3. Document all assumptions, workflows, and methodologies.
-4. Use version control (e.g., git) for tracking changes in scripts and workflows.
-5. Follow ethical web scraping practices, including adhering to robots.txt and rate limiting.
-6. Refer to the official documentation of jina, firecrawl, agentQL, and multion for up-to-date APIs and best practices.
-7. Use the latest information from the web to get up-to-date information on errors and tools
+2. Document all assumptions, workflows, and methodologies.
+3. Use version control (e.g., git) for tracking changes in scripts and workflows.
+4. Follow ethical web scraping practices, including adhering to robots.txt and rate limiting.
+5. Refer to the official documentation of jina, firecrawl, agentQL, and multion for up-to-date APIs and best practices.
+6. Use the latest information from the web to get up-to-date information on errors and tools
 
 Python Coding Style:
 - Always use tabs over spaces. If code has spaces indentation, convert to tabs

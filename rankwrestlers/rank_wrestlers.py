@@ -84,9 +84,17 @@ while currentDate <= maxDate:
 			winner = players[winnerId]
 			loser = players[loserId]
 
-			# Append the opponent's rating, RD, and the outcome (1 for win, 0 for loss).
-			playerResults[winnerId].append((loser.rating, loser.rd, 1))
-			playerResults[loserId].append((winner.rating, winner.rd, 0))
+			winType = outcome.WinType.lower()
+			if "fall" in winType or "f" == winType:
+				scoreRank = 1.0
+			elif "tf" in winType:
+				scoreRank = 1.0
+			else:
+				scoreRank = 0.7
+			
+			# Append the opponent's rating, RD, and the outcome.
+			playerResults[winnerId].append((loser.rating, loser.rd, scoreRank))
+			playerResults[loserId].append((winner.rating, winner.rd, 1 - scoreRank))
 
 	# Update the Glicko-2 ratings for all active players for the week.
 	for playerId, player in players.items():
