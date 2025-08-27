@@ -24,12 +24,12 @@
   - [x] 3.3 Add a `WHERE` clause to filter the wrestler pairs based on a Levenshtein distance of 1 or 2.
   - [x] 3.4 Add to the `WHERE` clause to also include pairs with the same `SOUNDEX` value.
   - [x] 3.5 Use an `OR` condition to combine the Levenshtein and Soundex filters.
-- [ ] 4.0 Determine the survivor and duplicate records based on match count and creation date
-  - [ ] 4.1 Create a new SQL file `determine_survivor_wrestler.sql` in the `deduplicate` directory.
-  - [ ] 4.2 Create a CTE to count the number of matches for each wrestler from the `EventWrestlerMatch` table.
-  - [ ] 4.3 Join the match count CTE to the wrestler pairs.
-  - [ ] 4.4 Add a `CASE` statement to determine the survivor based on the rules in the PRD (higher match count, then older record).
-  - [ ] 4.5 Structure the query to clearly label the `SurvivorWrestlerID`, `SurvivorWrestlerName`, `DuplicateWrestlerID`, and `DuplicateWrestlerName`.
+- [x] 4.0 Determine the survivor and duplicate records based on match count and creation date
+  - [x] 4.1 Create a new SQL file `determine_survivor_wrestler.sql` in the `deduplicate` directory.
+  - [x] 4.2 Create a CTE to count the number of matches for each wrestler from the `EventWrestlerMatch` table.
+  - [x] 4.3 Join the match count CTE to the wrestler pairs.
+  - [x] 4.4 Add a `CASE` statement to determine the survivor based on the rules in the PRD (higher match count, then older record).
+  - [x] 4.5 Structure the query to clearly label the `SurvivorWrestlerID`, `SurvivorWrestlerName`, `DuplicateWrestlerID`, and `DuplicateWrestlerName`.
 - [ ] 5.0 Finalize the report format and add comments
   - [ ] 5.1 Create a new SQL file `generate_deduplication_report.sql` in the `deduplicate` directory.
   - [ ] 5.2 Combine the logic from the previous scripts into a single query.
