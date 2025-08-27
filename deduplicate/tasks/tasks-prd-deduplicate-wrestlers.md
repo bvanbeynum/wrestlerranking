@@ -13,11 +13,11 @@
   - [x] 1.1 Create a new SQL file `get_wrestler_team_history.sql` in the `deduplicate` directory.
   - [x] 1.2 Write a query to select `WrestlerID` and `TeamName` from the `EventWrestlerMatch` table.
   - [x] 1.3 Use `DISTINCT` to ensure each wrestler-team pair is unique.
-- [ ] 2.0 Create the base query to select wrestler pairs who have wrestled for the same team
-  - [ ] 2.1 Create a new SQL file `get_wrestler_pairs.sql` in the `deduplicate` directory.
-  - [ ] 2.2 Use the logic from `get_wrestler_team_history.sql` in a CTE.
-  - [ ] 2.3 Self-join the CTE on `TeamName` to create pairs of wrestlers who have wrestled for the same team.
-  - [ ] 2.4 Ensure the self-join excludes pairs of the same wrestler record (`w1.WrestlerID <> w2.WrestlerID`).
+- [x] 2.0 Create the base query to select wrestler pairs who have wrestled for the same team
+  - [x] 2.1 Create a new SQL file `get_wrestler_pairs.sql` in the `deduplicate` directory.
+  - [x] 2.2 Use the logic from `get_wrestler_team_history.sql` in a CTE.
+  - [x] 2.3 Self-join the CTE on `TeamName` to create pairs of wrestlers who have wrestled for the same team.
+  - [x] 2.4 Ensure the self-join excludes pairs of the same wrestler record (`w1.WrestlerID <> w2.WrestlerID`).
 - [ ] 3.0 Implement Levenshtein distance and Soundex comparison logic
   - [ ] 3.1 Create a new SQL file `compare_wrestler_names.sql` in the `deduplicate` directory.
   - [ ] 3.2 Add a user-defined function for Levenshtein distance to the script.
