@@ -30,12 +30,12 @@
   - [x] 4.3 Join the match count CTE to the wrestler pairs.
   - [x] 4.4 Add a `CASE` statement to determine the survivor based on the rules in the PRD (higher match count, then older record).
   - [x] 4.5 Structure the query to clearly label the `SurvivorWrestlerID`, `SurvivorWrestlerName`, `DuplicateWrestlerID`, and `DuplicateWrestlerName`.
-- [ ] 5.0 Finalize the report format and add comments
-  - [ ] 5.1 Create a new SQL file `generate_deduplication_report.sql` in the `deduplicate` directory.
-  - [ ] 5.2 Combine the logic from the previous scripts into a single query.
-  - [ ] 5.3 Add the `TeamName`, `DetectionMethod` and `SimilarityScore` columns to the final `SELECT` statement.
-  - [ ] 5.4 Ensure the `DetectionMethod` column correctly indicates 'Levenshtein' or 'Soundex'.
-  - [ ] 5.5 Add comments to the SQL script to explain the logic of the different sections.
+- [x] 5.0 Finalize the report format and add comments
+  - [x] 5.1 Create a new SQL file `generate_deduplication_report.sql` in the `deduplicate` directory.
+  - [x] 5.2 Combine the logic from the previous scripts into a single query.
+  - [x] 5.3 Add the `TeamName`, `DetectionMethod` and `SimilarityScore` columns to the final `SELECT` statement.
+  - [x] 5.4 Ensure the `DetectionMethod` column correctly indicates 'Levenshtein' or 'Soundex'.
+  - [x] 5.5 Add comments to the SQL script to explain the logic of the different sections.
 - [ ] 6.0 Create a script to test the deduplication logic with sample data
   - [ ] 6.1 Create a new SQL file `test_deduplication.sql` in the `deduplicate` directory.
   - [ ] 6.2 Create temporary tables for `Wrestler`, `Team`, and `EventWrestlerMatch`.
