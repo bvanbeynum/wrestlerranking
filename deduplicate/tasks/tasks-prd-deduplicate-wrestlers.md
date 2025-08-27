@@ -36,10 +36,10 @@
   - [x] 5.3 Add the `TeamName`, `DetectionMethod` and `SimilarityScore` columns to the final `SELECT` statement.
   - [x] 5.4 Ensure the `DetectionMethod` column correctly indicates 'Levenshtein' or 'Soundex'.
   - [x] 5.5 Add comments to the SQL script to explain the logic of the different sections.
-- [ ] 6.0 Create a script to test the deduplication logic with sample data
-  - [ ] 6.1 Create a new SQL file `test_deduplication.sql` in the `deduplicate` directory.
-  - [ ] 6.2 Create temporary tables for `Wrestler`, `Team`, and `EventWrestlerMatch`.
-  - [ ] 6.3 Insert sample data into the temporary tables, including known duplicates.
-  - [ ] 6.4 Execute the `generate_deduplication_report.sql` logic against the temporary tables.
-  - [ ] 6.5 Print the results to verify the output.
-  - [ ] 6.6 Drop the temporary tables.
+- [x] 6.0 Create a script to test the deduplication logic with sample data
+  - [x] 6.1 Create a new SQL file `test_deduplication.sql` in the `deduplicate` directory.
+  - [x] 6.2 Create temporary tables for `Wrestler`, `Team`, and `EventWrestlerMatch`.
+  - [x] 6.3 Insert sample data into the temporary tables, including known duplicates.
+  - [x] 6.4 Execute the `generate_deduplication_report.sql` logic against the temporary tables.
+  - [x] 6.5 Print the results to verify the output.
+  - [x] 6.6 Drop the temporary tables.
