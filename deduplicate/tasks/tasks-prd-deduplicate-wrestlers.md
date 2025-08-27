@@ -18,12 +18,12 @@
   - [x] 2.2 Use the logic from `get_wrestler_team_history.sql` in a CTE.
   - [x] 2.3 Self-join the CTE on `TeamName` to create pairs of wrestlers who have wrestled for the same team.
   - [x] 2.4 Ensure the self-join excludes pairs of the same wrestler record (`w1.WrestlerID <> w2.WrestlerID`).
-- [ ] 3.0 Implement Levenshtein distance and Soundex comparison logic
-  - [ ] 3.1 Create a new SQL file `compare_wrestler_names.sql` in the `deduplicate` directory.
-  - [ ] 3.2 Add a user-defined function for Levenshtein distance to the script.
-  - [ ] 3.3 Add a `WHERE` clause to filter the wrestler pairs based on a Levenshtein distance of 1 or 2.
-  - [ ] 3.4 Add to the `WHERE` clause to also include pairs with the same `SOUNDEX` value.
-  - [ ] 3.5 Use an `OR` condition to combine the Levenshtein and Soundex filters.
+- [x] 3.0 Implement Levenshtein distance and Soundex comparison logic
+  - [x] 3.1 Create a new SQL file `compare_wrestler_names.sql` in the `deduplicate` directory.
+  - [x] 3.2 Add a user-defined function for Levenshtein distance to the script.
+  - [x] 3.3 Add a `WHERE` clause to filter the wrestler pairs based on a Levenshtein distance of 1 or 2.
+  - [x] 3.4 Add to the `WHERE` clause to also include pairs with the same `SOUNDEX` value.
+  - [x] 3.5 Use an `OR` condition to combine the Levenshtein and Soundex filters.
 - [ ] 4.0 Determine the survivor and duplicate records based on match count and creation date
   - [ ] 4.1 Create a new SQL file `determine_survivor_wrestler.sql` in the `deduplicate` directory.
   - [ ] 4.2 Create a CTE to count the number of matches for each wrestler from the `EventWrestlerMatch` table.
