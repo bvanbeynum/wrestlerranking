@@ -69,43 +69,99 @@ BEGIN
 END
 GO
 
--- CTE to get the distinct team history for each wrestler
-WITH WrestlerTeamHistory AS (
-	SELECT DISTINCT
-		WrestlerID,
-		TeamName
-	FROM
-		EventWrestlerMatch
-),
--- CTE to get the match count for each wrestler
-MatchCounts AS (
-	SELECT
-		WrestlerID,
-		COUNT(*) as MatchCount
-	FROM EventWrestlerMatch
-	GROUP BY WrestlerID
-),
--- CTE to find potential duplicate wrestlers based on Levenshtein distance or Soundex
-PotentialDuplicates AS (
-	SELECT
-		w1.ID as Wrestler1ID,
-		w2.ID as Wrestler2ID,
-		w1.Name AS Wrestler1Name,
-		w2.Name AS Wrestler2Name,
-		w1.InsertDate AS Wrestler1InsertDate,
-		w2.InsertDate AS Wrestler2InsertDate,
-		dbo.LEVENSHTEIN(w1.Name, w2.Name) as LevenshteinDistance,
-		wth1.TeamName
-	FROM
-		WrestlerTeamHistory wth1
-	JOIN
-		WrestlerTeamHistory wth2 ON wth1.TeamName = wth2.TeamName AND wth1.WrestlerID <> wth2.WrestlerID
-	JOIN Wrestler w1 ON wth1.WrestlerID = w1.ID
-	JOIN Wrestler w2 ON wth2.WrestlerID = w2.ID
-	WHERE dbo.LEVENSHTEIN(w1.Name, w2.Name) IN (1,2) OR SOUNDEX(w1.Name) = SOUNDEX(w2.Name)
-)
+if object_id('tempdb..#WrestlerTeamHistory') is not null drop table #WrestlerTeamHistory
+if object_id('tempdb..#MatchCounts') is not null drop table #MatchCounts
+if object_id('tempdb..#WrestlerInfo') is not null drop table #WrestlerInfo
+if object_id('tempdb..#SoundexDuplicates') is not null drop table #SoundexDuplicates
+if object_id('tempdb..#LevenshteinDuplicates') is not null drop table #LevenshteinDuplicates
+if object_id('tempdb..#potentialDuplicates') is not null drop table #potentialDuplicates
+
+-- Create #WrestlerTeamHistory temp table
+SELECT DISTINCT
+	EventWrestlerID,
+	TeamName
+INTO #WrestlerTeamHistory
+FROM EventWrestlerMatch;
+
+CREATE INDEX idxWrestlerTeamHistory ON #WrestlerTeamHistory(TeamName, EventWrestlerID);
+
+-- Create #MatchCounts temp table
+SELECT
+	EventWrestlerID,
+	COUNT(*) as MatchCount
+INTO #MatchCounts
+FROM EventWrestlerMatch
+GROUP BY EventWrestlerID;
+
+CREATE INDEX idxMatchCounts ON #MatchCounts(EventWrestlerID);
+
+-- Step 1: Handle Soundex matches
+-- Pre-calculate soundex for all wrestlers to optimize the join.
+SELECT
+	ID,
+	WrestlerName,
+	LEN(WrestlerName) as NameLength,
+	InsertDate,
+	SOUNDEX(WrestlerName) as SoundexValue
+INTO #WrestlerInfo
+FROM EventWrestler;
+
+-- Index the temp table
+CREATE INDEX idx_WrestlerInfo_Soundex ON #WrestlerInfo(SoundexValue, ID);
+CREATE INDEX idx_WrestlerInfo_ID ON #WrestlerInfo(ID);
+
+
+-- Find pairs with same soundex who have been on the same team
+SELECT
+	w1.ID as Wrestler1ID,
+	w2.ID as Wrestler2ID,
+	w1.WrestlerName AS Wrestler1Name,
+	w2.WrestlerName AS Wrestler2Name,
+	w1.InsertDate AS Wrestler1InsertDate,
+	w2.InsertDate AS Wrestler2InsertDate,
+	NULL as LevenshteinDistance,
+	wth1.TeamName
+INTO #SoundexDuplicates
+FROM #WrestlerTeamHistory wth1
+JOIN #WrestlerTeamHistory wth2 ON wth1.TeamName = wth2.TeamName AND wth1.EventWrestlerID < wth2.EventWrestlerID
+JOIN #WrestlerInfo w1 ON wth1.EventWrestlerID = w1.ID
+JOIN #WrestlerInfo w2 ON wth2.EventWrestlerID = w2.ID
+WHERE w1.SoundexValue = w2.SoundexValue AND w1.WrestlerName <> w2.WrestlerName;
+
+
+-- Step 2: Handle Levenshtein matches
+-- This is still expensive, but we pre-filter by name length to reduce comparisons.
+SELECT
+	w1.ID as Wrestler1ID,
+	w2.ID as Wrestler2ID,
+	w1.WrestlerName AS Wrestler1Name,
+	w2.WrestlerName AS Wrestler2Name,
+	w1.InsertDate AS Wrestler1InsertDate,
+	w2.InsertDate AS Wrestler2InsertDate,
+	dbo.LEVENSHTEIN(w1.WrestlerName, w2.WrestlerName) as LevenshteinDistance,
+	wth1.TeamName
+INTO #LevenshteinDuplicates
+FROM
+	#WrestlerTeamHistory wth1
+JOIN #WrestlerTeamHistory wth2 ON wth1.TeamName = wth2.TeamName AND wth1.EventWrestlerID < wth2.EventWrestlerID
+JOIN #WrestlerInfo w1 ON wth1.EventWrestlerID = w1.ID
+JOIN #WrestlerInfo w2 ON wth2.EventWrestlerID = w2.ID
+WHERE ABS(w1.NameLength - w2.NameLength) <= 2
+  AND dbo.LEVENSHTEIN(w1.WrestlerName, w2.WrestlerName) IN (1,2);
+
+
+-- Step 3: Combine the results
+SELECT *
+INTO #PotentialDuplicates
+FROM #SoundexDuplicates
+
+UNION
+
+SELECT *
+FROM #LevenshteinDuplicates;
+
 -- Final SELECT statement to generate the deduplication report
-SELECT 
+SELECT
 	-- Determine the survivor and duplicate wrestler IDs and names based on match count and insert date
 	CASE
 		WHEN mc1.MatchCount > mc2.MatchCount THEN pd.Wrestler1ID
@@ -134,11 +190,19 @@ SELECT
 	pd.TeamName,
 	-- Determine the detection method (Levenshtein or Soundex)
 	CASE
-		WHEN pd.LevenshteinDistance <= 2 THEN 'Levenshtein'
+		WHEN pd.LevenshteinDistance IS NOT NULL AND pd.LevenshteinDistance <= 2 THEN 'Levenshtein'
 		ELSE 'Soundex'
 	END as DetectionMethod,
 	-- The Levenshtein distance is used as the similarity score
 	pd.LevenshteinDistance as SimilarityScore
-FROM PotentialDuplicates pd
-JOIN MatchCounts mc1 ON pd.Wrestler1ID = mc1.WrestlerID
-JOIN MatchCounts mc2 ON pd.Wrestler2ID = mc2.WrestlerID
+FROM #PotentialDuplicates pd
+JOIN #MatchCounts mc1 ON pd.Wrestler1ID = mc1.EventWrestlerID
+JOIN #MatchCounts mc2 ON pd.Wrestler2ID = mc2.EventWrestlerID;
+
+-- Clean up temp tables
+DROP TABLE #WrestlerInfo;
+DROP TABLE #SoundexDuplicates;
+DROP TABLE #LevenshteinDuplicates;
+DROP TABLE #PotentialDuplicates;
+DROP TABLE #WrestlerTeamHistory;
+DROP TABLE #MatchCounts;

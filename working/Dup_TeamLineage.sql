@@ -121,7 +121,7 @@ order by
 
 select	*
 from	#DupPopulation
-where	WrestlerName like '% beynum'
+-- where	WrestlerName like '% beynum'
 order by
 		Dups desc
 		, TeamGroupID
