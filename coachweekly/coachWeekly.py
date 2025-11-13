@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 
-with open("./scripts/config.json", "r") as reader:
+with open("./config.json", "r") as reader:
 	config = json.load(reader)
 
 def logMessage(message):
@@ -34,7 +34,7 @@ def errorLogging(errorMessage):
 
 def loadSQL():
 	sql = {}
-	sqlPath = "./scripts/virtualteamparent/sql"
+	sqlPath = "./coachweekly/sql"
 
 	if os.path.exists(sqlPath):
 		for file in os.listdir(sqlPath):
@@ -111,7 +111,7 @@ logMessage(f"------------- Send Email")
 try:
 	logMessage(f"AI Email Generation")
 	
-	with open("./scripts/virtualteamparent/coachWeekly.css", "r") as reader:
+	with open("./coachweekly/coachWeekly.css", "r") as reader:
 		templateCSS = reader.read()
 
 	url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={config['geminiAPIKey']}"
