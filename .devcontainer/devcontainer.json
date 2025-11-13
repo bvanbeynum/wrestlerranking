@@ -29,7 +29,7 @@
   // 3. AUTOMATICALLY INSTALL PACKAGES
   // 'postCreateCommand' runs as the container user ('appuser') after the container is ready.
   // We now only need it to install our python packages.
-  "postCreateCommand": "pip3 install -r requirements.txt",
+  // "postCreateCommand": "pip3 install -r requirements.txt",
 
   // 4. MOUNT LOCAL FILES (The Default Behavior)
   // VS Code automatically mounts your project folder into the container.
