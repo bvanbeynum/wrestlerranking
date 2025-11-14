@@ -1,0 +1,162 @@
+/* --- Base Styles --- */
+body {
+margin: 0;
+padding: 0;
+font-family: Arial, sans-serif;
+line-height: 1.6;
+background-color: #f4f4f4;
+}
+
+table {
+border-collapse: collapse;
+border-spacing: 0;
+}
+
+/* --- Wrapper --- */
+.wrapper-table {
+width: 100%;
+border: 0;
+padding: 0;
+margin: 0;
+background-color: #f4f4f4;
+}
+
+.wrapper-cell {
+text-align: center;
+}
+
+.content-table {
+width: 100%;
+max-width: 600px;
+margin: 0 auto;
+background-color: #ffffff;
+}
+
+/* --- Header --- */
+.header {
+background-color: #1158AD;
+color: #FFFFFF;
+padding: 20px 30px;
+text-align: center;
+}
+
+.header h1 {
+margin: 0;
+font-size: 28px;
+}
+
+.header-subtext {
+margin: 5px 0 0;
+font-size: 18px;
+color: #F0BF1A;
+font-weight: bold;
+}
+
+/* --- Main Content --- */
+.main-content {
+padding: 30px 20px;
+}
+
+.main-content > p {
+font-size: 16px;
+margin-bottom: 25px;
+}
+
+h2.section-title {
+color: #1158AD;
+border-bottom: 2px solid #F0BF1A;
+padding-bottom: 5px;
+margin-top: 30px;
+}
+
+h2.section-title.first {
+margin-top: 0;
+}
+
+p.section-intro {
+font-size: 16px;
+margin-bottom: 20px;
+}
+
+/* --- Tables --- */
+.table-wrapper {
+overflow-x: auto;
+margin-bottom: 20px;
+}
+
+.data-table {
+width: 100%;
+border: 1px solid #ddd;
+}
+
+.data-table thead {
+background-color: #f9f9f9;
+}
+
+.data-table th,
+.data-table td {
+border: 1px solid #ddd;
+padding: 10px;
+}
+
+.data-table th {
+text-align: left;
+color: #1158AD;
+}
+
+.data-table td {
+vertical-align: top;
+}
+
+/* --- Performance --- */
+h3.performance-title {
+color: #1158AD;
+margin-top: 25px;
+margin-bottom: 10px;
+}
+
+p.commentary {
+font-style: italic;
+margin-bottom: 15px;
+color: #555;
+font-size: 16px;
+}
+
+/* --- Footer --- */
+.footer {
+background-color: #F0BF1A;
+color: #1158AD;
+padding: 20px 30px;
+text-align: center;
+font-weight: bold;
+font-size: 20px;
+}
+
+.footer p {
+margin: 0;
+}
+
+/* --- Utilities --- */
+.text-center { text-align: center; }
+.win { font-weight: bold; color: green; }
+.loss { color: red; }
+
+/* --- Responsive --- */
+@media screen and (max-width: 600px) {
+.content-table {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+.main-content {
+	padding: 20px 15px;
+}
+.header {
+	padding: 20px;
+}
+.header h1 {
+	font-size: 24px;
+}
+.header-subtext {
+	font-size: 16px;
+}
+}
