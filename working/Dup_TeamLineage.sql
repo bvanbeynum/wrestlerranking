@@ -152,7 +152,7 @@ order by
 		SaveID
 
 select	Dups = (select count(0) from #dedup)
-		, Matches = (select count(distinct TrackWrestlerMatch.ID) from TrackWrestlerMatch join #dedup dedup on TrackWrestlerMatch.TrackWrestlerID = dedup.DupID)
+		, Matches = (select count(distinct EventWrestlerMatch.ID) from EventWrestlerMatch join #dedup dedup on EventWrestlerMatch.EventWrestlerID = dedup.DupID)
 
 update	EventWrestlerMatch
 set		EventWrestlerID = dedup.SaveID
