@@ -46,7 +46,7 @@ def loadSQL():
 
 def loadDualResults(dataDate, sheetsService):
 	sheetId = "1-jIN_qDGDd9GC2FNQmfN8ysvddnOmu8-9Lwhnabv4a8"
-	tabName = "2024-2025 Duals" #"2025-26 Duals"
+	tabName = "2025-26 Duals" #"2024-2025 Duals"
 	totalColumnIndex = None
 	dualData = []
 
@@ -343,7 +343,7 @@ def getParentEmails(sheetsService):
 logMessage("---- Startup ----")
 
 sql = loadSQL()
-loadDate = datetime(2025, 11, 16)
+loadDate = datetime(2025, 11, 17)
 
 with open("./config.json", "r") as reader:
 	config = json.load(reader)
@@ -528,7 +528,7 @@ except Exception as error:
 try:
 	logMessage(f"Inlining CSS")
 	inlinedHtml = premailer.transform(geminiResponse)
-	subject = f"Weekly Email Analysis - {loadDate.strftime('%m/%d/%Y')}"
+	subject = f"FM Wrestling Weekly Email • {loadDate.strftime('%m/%d/%Y')}"
 	batchSize = 40
 
 	logMessage(f"Sending Email")
