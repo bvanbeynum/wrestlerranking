@@ -44,6 +44,7 @@ mongoWrestlers = json.loads(response.text)["wrestlers"]
 wrestlerLookup = {wrestler['sqlId']: wrestler['id'] for wrestler in mongoWrestlers}
 
 if len(mongoWrestlers) > 0:
+	print(f"{ currentTime() }: Load mill wrestlers to stage")
 	cur.execute(sql["WrestlerStageCreate"])
 	cur.executemany("insert #WrestlerStage (WrestlerID, MongoID) values (?,?);", [ (wrestler["sqlId"],wrestler["id"]) for wrestler in mongoWrestlers ])
 	cur.execute(sql["WrestlersMissing"])
@@ -51,6 +52,7 @@ if len(mongoWrestlers) > 0:
 	rowIndex = 0
 	errorCount = 0
 
+	print(f"{ currentTime() }: Loop through wrestlers to delete")
 	for row in cur:
 		response = requests.delete(f"{ millDBURL }/data/wrestler?id={ row.MongoID }")
 
@@ -184,6 +186,32 @@ while True:
 		break
 
 print(f"{ currentTime() }: { wrestlersCompleted } wrestlers processed")
+
+print(f"{ currentTime() }: Get Schools")
+
+cur.execute(sql["SchoolGet"])
+schools = cur.fetchall()
+
+schoolsCompleted = 0
+
+for school in schools:
+	schoolSave = {
+		"sqlId": school.SchoolID,
+		"name": school.SchoolName,
+		"classification": school.Classification,
+		"region": school.Region,
+		"lookupNames": school.LookupNames
+	}
+
+	response = requests.post(f"{ millDBURL }/data/school", json={ "school": schoolSave })
+
+	if response.status_code >= 400:
+		errorCount += 1
+		print(f"{ currentTime() }: Error saving school: { response.status_code } - { response.text }")
+	
+	schoolsCompleted += 1
+
+print(f"{ currentTime() }: { schoolsCompleted } wrestlers processed")
 
 cur.close()
 cn.close()
