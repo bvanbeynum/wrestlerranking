@@ -1,5 +1,5 @@
 
-select	top 1 
+select	top 5
 		CompletedCount
 		, PeriodsRemaining
 		, WrestlersLoaded = Wrestlers
@@ -10,6 +10,7 @@ select	top 1
 		, TimeRemaining = cast(lag(LoadSeconds) over (order by PeriodEndDate) * PeriodsRemaining / 60 / 60 / 24 as varchar(255)) + 'D ' +
 			cast((lag(LoadSeconds) over (order by PeriodEndDate) * PeriodsRemaining / 60 / 60) % 24 as varchar(255)) + 'h ' +
 			cast((lag(LoadSeconds) over (order by PeriodEndDate) * PeriodsRemaining / 60) % 60 as varchar(255)) + 'm '
+		, Ending = dateadd(second, lag(LoadSeconds) over (order by PeriodEndDate) * PeriodsRemaining, LastAdd)
 from	(
 		select	*
 				, Completed = 
