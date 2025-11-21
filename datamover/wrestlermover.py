@@ -6,13 +6,12 @@ import pyodbc
 
 def loadSQL():
 	sql = {}
-	sqlPath = "./scripts/datamover/sql"
+	sqlPath = "./datamover/sql"
 
 	if os.path.exists(sqlPath):
 		for file in os.listdir(sqlPath):
-			if file.startswith("WrestlerMover"):
-				with open(f"{ sqlPath }/{ file }", "r") as fileReader:
-					sql[os.path.splitext(file)[0]] = fileReader.read()
+			with open(f"{ sqlPath }/{ file }", "r") as fileReader:
+				sql[os.path.splitext(file)[0]] = fileReader.read()
 	
 	return sql
 
@@ -23,7 +22,7 @@ print(f"{ currentTime() }: ----------- Setup")
 
 print(f"{ currentTime() }: Load config")
 
-with open("./scripts/config.json", "r") as reader:
+with open("./config.json", "r") as reader:
 	config = json.load(reader)
 
 millDBURL = config["millServer"]
