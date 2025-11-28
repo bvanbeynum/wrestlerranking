@@ -53,7 +53,7 @@ while currentDate <= maxDate:
 	weekEnd = currentDate + timedelta(days=6 - currentDate.weekday())
 	activityStartDate = currentDate - timedelta(days=365)
 
-	if weekEnd > datetime.date.today():
+	if weekEnd > datetime.now().date():
 		# Weeks not complete, so ranking is finished
 		break
 
