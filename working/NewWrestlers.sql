@@ -227,7 +227,8 @@ from	(
 join	#Matches Matches
 on		MatchGroup.NewID = Matches.NewID
 order by
-		MatchGroupID
+		MatchedTeams
+		, NewID	
 		, ExistingID;
 
 return;

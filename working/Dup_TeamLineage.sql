@@ -17,9 +17,12 @@ if object_id('tempdb..#DupPopulation') is not null
 if object_id('tempdb..#dedup') is not null
 	drop table #dedup
 
+-- ****************** Build the team groups *****************
+
+-- All teams
 select	TeamName
 		, EventWrestlerID
-into	#WrestlerTeam
+into	#AllTeams
 from	(
 		select	EventWrestlerMatch.TeamName
 				, EventWrestlerMatch.EventWrestlerID
@@ -35,47 +38,58 @@ from	(
 		) WrestlerTeam
 where	Wrestlers < 500
 order by
-		Wrestlers desc
+		Wrestlers desc;
 
+-- Get the baseline for the teams
 select	TeamID = row_number() over (order by TeamName)
 		, TeamName
 		, Iteration = cast(1 as int)
 into	#AllTeamGroup
-from	#WrestlerTeam
+from	#AllTeams
 group by
-		TeamName
+		TeamName;
 
-insert	#AllTeamGroup (
-		TeamID
-		, TeamName
-		, Iteration
-		)
-select	AllTeam.TeamID
-		, NextTeam.TeamName
-		, AllTeam.Iteration + 1
-from	#AllTeamGroup AllTeam
-join	#WrestlerTeam Initial
-on		AllTeam.TeamName = Initial.TeamName
-join	#WrestlerTeam NextTeam
-on		Initial.EventWrestlerID = NextTeam.EventWrestlerID
-		and Initial.TeamName <> NextTeam.TeamName
-left join
-		#AllTeamGroup Excluded
-on		NextTeam.TeamName = Excluded.TeamName
-		and AllTeam.TeamID = Excluded.TeamID
-where	Excluded.TeamName is null
-		and AllTeam.Iteration = 2
-group by
-		AllTeam.TeamID
-		, NextTeam.TeamName
-		, AllTeam.Iteration
+-- Iterate to get N levels deep of teams
 
+declare @Iteration int = 1;
+
+while @Iteration <= 2
+begin
+	insert	#AllTeamGroup (
+			TeamID
+			, TeamName
+			, Iteration
+			)
+	select	AllTeam.TeamID
+			, NextTeam.TeamName
+			, AllTeam.Iteration + 1
+	from	#AllTeamGroup AllTeam
+	join	#AllTeams Initial
+	on		AllTeam.TeamName = Initial.TeamName
+	join	#AllTeams NextTeam
+	on		Initial.EventWrestlerID = NextTeam.EventWrestlerID
+			and Initial.TeamName <> NextTeam.TeamName
+	left join
+			#AllTeamGroup Excluded
+	on		NextTeam.TeamName = Excluded.TeamName
+			and AllTeam.TeamID = Excluded.TeamID
+	where	Excluded.TeamName is null
+			and AllTeam.Iteration = @Iteration
+	group by
+			AllTeam.TeamID
+			, NextTeam.TeamName
+			, AllTeam.Iteration;
+
+	set @Iteration = @Iteration + 1;
+end
+
+-- Create the group ID
 select	GroupID = min(TeamID)
 		, TeamName
 into	#TeamGroup
 from	#AllTeamGroup
 group by
-		TeamName
+		TeamName;
 
 select	*
 into	#DupPopulation
