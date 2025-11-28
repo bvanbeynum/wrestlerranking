@@ -211,7 +211,7 @@ for school in schools:
 	
 	schoolsCompleted += 1
 
-print(f"{ currentTime() }: { schoolsCompleted } wrestlers processed")
+print(f"{ currentTime() }: { schoolsCompleted } schools processed")
 
 cur.close()
 cn.close()
