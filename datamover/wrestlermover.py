@@ -187,7 +187,13 @@ while True:
 
 print(f"{ currentTime() }: { wrestlersCompleted } wrestlers processed")
 
-print(f"{ currentTime() }: Get Schools")
+print(f"{ currentTime() }: Get Schools from Wrestlingmill")
+
+response = requests.get(f"{ millDBURL }/data/school?select=sqlId")
+mongoSchools = json.loads(response.text)["schools"]
+
+# Create a lookup dictionary for mongoWrestlers by sqlId
+schoolLookup = {school['sqlId']: school['id'] for school in mongoSchools}
 
 cur.execute(sql["SchoolGet"])
 schools = cur.fetchall()
@@ -202,6 +208,10 @@ for school in schools:
 		"region": school.Region,
 		"lookupNames": school.LookupNames
 	}
+	
+	# Add id if a match is found in wrestlerLookup
+	if school.SchoolID in schoolLookup:
+		schoolSave["id"] = schoolLookup[school.SchoolID]
 
 	response = requests.post(f"{ millDBURL }/data/school", json={ "school": schoolSave })
 
