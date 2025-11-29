@@ -46,12 +46,12 @@ def loadSQL():
 logMessage(f"------------- Setup")
 
 sql = loadSQL()
-dataDate = "12/8/2024"
+dataDate = "11/24/2025"
 
 logMessage(f"Connecting to DB")
 
 try:
-	db = sqlalchemy.create_engine(f"mssql+pyodbc://{config['database']['user']}:{config['database']['password']}@{config['database']['server']}/{config['database']['database']}?driver={quote_plus("ODBC Driver 18 for SQL Server")}&encrypt=no", isolation_level="AUTOCOMMIT")
+	db = sqlalchemy.create_engine(f"mssql+pyodbc://{config['database']['user']}:{config['database']['password']}@{config['database']['server']}/{config['database']['database']}?driver={quote_plus('ODBC Driver 18 for SQL Server')}&encrypt=no", isolation_level="AUTOCOMMIT")
 	
 	cn = db.connect()
 except Exception as error:
