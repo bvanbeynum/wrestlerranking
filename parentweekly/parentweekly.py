@@ -203,66 +203,6 @@ def loadEvents(loadDate, sheetsService):
 
 	return calendars
 
-# def loadCalendar(dataDate, calendarService):
-# 	varsityCalendarId = "socialcranberry.com_n7ukj4ggnsvi6mncqei7b0g6ec@group.calendar.google.com"
-# 	middleCalendarId = "socialcranberry.com_69uthbij08ikd9jui20mg4q728@group.calendar.google.com"
-
-# 	calendars = {}
-
-# 	# Get the current time in UTC (RFC3339 format)
-# 	# This tells the API to get events starting from "now"
-# 	nowUTC = dataDate.replace(tzinfo=timezone.utc)
-# 	timeMin = nowUTC.isoformat()
-
-# 	# Calculate days until Sunday (Monday=0, Sunday=6)
-# 	daysUntilSunday = (6 - nowUTC.weekday())
-
-# 	# Get the date for the upcoming Sunday
-# 	sundayDate = nowUTC.date() + timedelta(days=daysUntilSunday)
-
-# 	timeMax = datetime(sundayDate.year, sundayDate.month, sundayDate.day, 23, 59, 59, tzinfo=timezone.utc).isoformat()
-# 	logMessage(f"Range: {timeMin} to {timeMax}")
-
-# 	# Call the Calendar API
-# 	eventsResult = calendarService.events().list(
-# 		calendarId=varsityCalendarId,
-# 		timeMin=timeMin,
-# 		timeMax=timeMax,
-# 		maxResults=50,
-# 		singleEvents=True, # Expand recurring events
-# 		orderBy='startTime' # Order them by start time
-# 	).execute()
-
-# 	calendars["varsity"] = pd.DataFrame([ {
-# 			"startDate": event["start"],
-# 			"endDate": event["end"],
-# 			"summary": event["summary"],
-# 			"location": event.get("location", "")
-# 		} for event in eventsResult.get('items', []) if not re.search(r'practice', event["summary"], re.IGNORECASE)
-#  ])
-
-# 	logMessage(f"Loaded { len(calendars["varsity"])} varsity events")
-
-# 	# Call the Calendar API
-# 	eventsResult = calendarService.events().list(
-# 		calendarId=middleCalendarId,
-# 		timeMin=timeMin,
-# 		timeMax=timeMax,
-# 		maxResults=50,
-# 		singleEvents=True, # Expand recurring events
-# 		orderBy='startTime' # Order them by start time
-# 	).execute()
-
-# 	calendars["middle"] = pd.DataFrame([ {
-# 			"startDate": event["start"],
-# 			"endDate": event["end"],
-# 			"summary": event["summary"],
-# 			"location": event.get("location", "")
-# 		} for event in eventsResult.get('items', []) if not re.search(r'practice', event["summary"], re.IGNORECASE)
-# 	])
-	
-# 	return calendars
-
 def loadSQLData(loadDate):
 	datasets = {}
 
@@ -308,14 +248,6 @@ Our apparal store is available at: https://stores.inksoft.com/FM_Wrestling/shop/
 - Fill the gym with blue and yellow
 """)
 	
-	prompts.append("""
-Request support for the Blue & Gold tournament that we're hosting on 11/22/2025.
-- Volunteer signup: https://www.signupgenius.com/go/10C0C4CACA722ABF4CF8-60444081-blue/48549563#/
-- Food signup: https://www.signupgenius.com/go/10C0C4CACA722ABF4CF8-60444313-blue/48549563#/
-- Include a countdown to the tournament.
-- Great way to meet other team parents.
-""")
-	
 	return prompts
 
 def getParentEmails(sheetsService):
@@ -343,7 +275,8 @@ def getParentEmails(sheetsService):
 logMessage("---- Startup ----")
 
 sql = loadSQL()
-loadDate = datetime(2025, 11, 17)
+# loadDate = datetime(2025, 11, 17)
+loadDate = datetime.now()
 
 with open("./config.json", "r") as reader:
 	config = json.load(reader)
