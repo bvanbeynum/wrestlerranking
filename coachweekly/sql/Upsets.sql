@@ -1,36 +1,22 @@
 ;with MatchDetails as (
-	select	WeekEvents.EventID
-			, WeekEvents.EventName
-			, EventMatch.ID as MatchID
-			, EventMatch.RoundName
-			, EventMatch.WeightClass
+	select	WinnerMatch.EventID
+			, WinnerMatch.EventName
+			, WinnerMatch.MatchID
+			, WinnerMatch.RoundName
+			, WinnerMatch.WeightClass
 			, WinnerName = WinnerMatch.WrestlerName
 			, WinnerTeam = WinnerMatch.TeamName
-			, WinnerRating = WinnerRanking.Rating
+			, WinnerRating = WinnerMatch.Rating
 			, WinnerEventWrestlerID = WinnerMatch.EventWrestlerID
 			, LoserName = LoserMatch.WrestlerName
 			, LoserTeam = LoserMatch.TeamName
 			, LoserRating = LoserRanking.Rating
 			, LoserEventWrestlerID = LoserMatch.EventWrestlerID 
-			, RatingDiff = LoserRanking.Rating - WinnerRanking.Rating
-	from	(
-			select	EventID
-					, EventName
-			from	#WeekEvents
-			group by
-					EventID
-					, EventName
-			) WeekEvents
-	join	EventMatch
-	on		WeekEvents.EventID = EventMatch.EventID
-	join	EventWrestlerMatch WinnerMatch
-	on		EventMatch.ID = WinnerMatch.EventMatchID
-			and WinnerMatch.IsWinner = 1
+			, RatingDiff = LoserRanking.Rating - WinnerMatch.Rating
+	from	#EventRatings WinnerMatch
 	join	EventWrestlerMatch LoserMatch
-	on		EventMatch.ID = LoserMatch.EventMatchID
+	on		WinnerMatch.MatchID = LoserMatch.EventMatchID
 			and LoserMatch.IsWinner = 0
-	join	#EventRatings WinnerRanking
-	on		WinnerMatch.EventWrestlerID = WinnerRanking.EventWrestlerID
 	join	#EventRatings LoserRanking
 	on		LoserMatch.EventWrestlerID = LoserRanking.EventWrestlerID
 	cross apply (
@@ -41,9 +27,8 @@
 			where	(EventSchool.EventSchoolName = WinnerMatch.TeamName or EventSchool.EventSchoolName = LoserMatch.TeamName)
 					and School.Classification like '5a%'
 			) SchoolFilter
-	where	coalesce(EventMatch.Division, 'hs') like 'hs%'
-			or EventMatch.Division = 'jv'
-			or EventMatch.Division like '%high school%'
+	where	WinnerMatch.Division in ('hs', 'jv')
+			and WinnerMatch.IsWinner = 1
 ),
 UpsetMatches as (
 	select * from MatchDetails where RatingDiff > 0

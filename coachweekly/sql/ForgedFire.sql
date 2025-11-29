@@ -1,7 +1,7 @@
 with OpponentSkill as (
-select	Division = case when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity' else 'JV' end
+select	Division = EventRatings.Division
 		, Wrestler = EventWrestler.WrestlerName
-		, IsWin = case when EventWrestlerMatch.IsWinner = 1 then 'Beat ' else 'Lost to ' end
+		, IsWin = case when EventRatings.IsWinner = 1 then 'Beat ' else 'Lost to ' end
 		, Opponent = OpponentMatch.WrestlerName
 		, OpponentTeam = OpponentMatch.TeamName
 		, OpponentRating = OpponentRating.Rating
@@ -10,22 +10,17 @@ select	Division = case when coalesce(EventMatch.Division, 'hs') like 'hs%' or Ev
 			order by OpponentRating.Rating desc
 			)
 		, MaxRating = max(OpponentRating.Rating) over (partition by EventWrestler.id)
-		, OverRated = case when OpponentRating.Rating > percentile_cont(0.8) within group (order by Rating) over (partition by EventWrestler.id) then 1 else 0 end
-from	#WeekEvents WeekEvents
-join	EventMatch
-on		WeekEvents.EventID = EventMatch.EventID
-join	EventWrestlerMatch
-on		EventMatch.ID = EventWrestlerMatch.EventMatchID
-		and WeekEvents.EventSchoolName = EventWrestlerMatch.TeamName
+		, OverRated = case when OpponentRating.Rating > percentile_cont(0.8) within group (order by OpponentRating.Rating) over (partition by EventWrestler.id) then 1 else 0 end
+from	#EventRatings EventRatings
 join	EventWrestlerMatch OpponentMatch
-on		EventWrestlerMatch.EventMatchID = OpponentMatch.EventMatchID
-		and EventWrestlerMatch.EventWrestlerID <> OpponentMatch.EventWrestlerID
+on		EventRatings.MatchID = OpponentMatch.EventMatchID
+		and EventRatings.EventWrestlerID <> OpponentMatch.EventWrestlerID
 join	WrestlerRating OpponentRating
 on		OpponentMatch.EventWrestlerID = OpponentRating.EventWrestlerID
-		and WeekEvents.EventDate between dateadd(day, -6, OpponentRating.PeriodEndDate) and OpponentRating.PeriodEndDate
+		and EventRatings.EventDate between dateadd(day, -6, OpponentRating.PeriodEndDate) and OpponentRating.PeriodEndDate
 join	EventWrestler
-on		EventWrestlerMatch.EventWrestlerID = EventWrestler.ID
-where	WeekEvents.SchoolID = 71 -- Fort Mill
+on		EventRatings.EventWrestlerID = EventWrestler.ID
+where	EventRatings.SchoolID = 71 -- Fort Mill
 )
 select	Division
 		, Rank

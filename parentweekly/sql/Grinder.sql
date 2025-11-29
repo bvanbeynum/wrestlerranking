@@ -1,15 +1,23 @@
 with ConsiWrestler as (
-select	Division = case 
-			when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity'
-			when EventMatch.Division = 'MS' or EventMatch.Division like '%middle%' then 'MS'
-			when EventMatch.Division like '%girl%' then 'Girls'
-			else 'JV' end
+select	Division = case when EventMatch.Division is not null then EventMatch.Division
+			when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
+			else 'HS' end
 		, Rank = rank() over (
-			partition by case 
-				when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity'
-				when EventMatch.Division = 'MS' or EventMatch.Division like '%middle%' then 'MS'
-				when EventMatch.Division like '%girl%' then 'Girls'
-				else 'JV' end
+			partition by case when EventMatch.Division is not null then EventMatch.Division
+				when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
+				when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
+				when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
+				when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
+				when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
+				when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
+				when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
+				else 'HS' end
 			order by sum(case 
 				when EventMatch.RoundName like '3rd Place%' then 1 
 				when EventMatch.RoundName like '%th Place%' then 1 
@@ -33,11 +41,15 @@ on		EventWrestlerMatch.EventWrestlerID = EventWrestler.ID
 where	WeekEvents.SchoolID = 71 -- Fort Mill
 group by
 		EventWrestler.WrestlerName
-		, case 
-			when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity'
-			when EventMatch.Division = 'MS' or EventMatch.Division like '%middle%' then 'MS'
-			when EventMatch.Division like '%girl%' then 'Girls'
-			else 'JV' end
+		, case when EventMatch.Division is not null then EventMatch.Division
+			when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
+			else 'HS' end
 having	sum(case 
 			when EventMatch.RoundName like '3rd Place%' then 1 
 			when EventMatch.RoundName like '%th Place%' then 1 

@@ -56,7 +56,15 @@ insert	#EventRatings (
 select	distinct WeekEvents.EventID
 		, WeekEvents.EventName
 		, WeekEvents.SchoolID
-		, Division = coalesce(EventMatch.Division, 'hs')
+		, Division = case when EventMatch.Division is not null then EventMatch.Division
+			when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
+			else 'HS' end
 		, EventMatch.WeightClass
 		, WrestlerRating.EventWrestlerID
 		, WrestlerRating.Rating

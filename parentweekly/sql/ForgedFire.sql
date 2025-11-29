@@ -1,9 +1,13 @@
 with OpponentSkill as (
-select	Division = case 
-			when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity'
-			when EventMatch.Division = 'MS' or EventMatch.Division like '%middle%' then 'MS'
-			when EventMatch.Division like '%girl%' then 'Girls'
-			else 'JV' end
+select	Division = case when EventMatch.Division is not null then EventMatch.Division
+			when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
+			when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
+			else 'HS' end
 		, Wrestler = EventWrestler.WrestlerName
 		, IsWin = case when EventWrestlerMatch.IsWinner = 1 then 'Beat ' else 'Lost to ' end
 		, Opponent = OpponentMatch.WrestlerName

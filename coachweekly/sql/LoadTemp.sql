@@ -1,3 +1,5 @@
+set nocount on;
+
 insert	#WeekEvents (
 		EventID
 		, EventDate
@@ -46,29 +48,75 @@ order by
 
 insert	#EventRatings (
 		EventID
+		, EventDate
 		, EventName
 		, SchoolID
+		, MatchID
 		, Division
 		, WeightClass
+		, RoundName
+		, WinType
+		, WrestlerName
+		, TeamName
+		, IsWinner
 		, EventWrestlerID
 		, Rating
+		, PeriodEndDate
 		)
-select	distinct WeekEvents.EventID
-		, WeekEvents.EventName
-		, WeekEvents.SchoolID
-		, Division = coalesce(EventMatch.Division, 'hs')
-		, EventMatch.WeightClass
-		, WrestlerRating.EventWrestlerID
-		, WrestlerRating.Rating
-from	#WeekEvents WeekEvents
-join	EventMatch
-on		WeekEvents.EventID = EventMatch.EventID
-join	EventWrestlerMatch
-on		EventMatch.ID = EventWrestlerMatch.EventMatchID
-		and WeekEvents.EventSchoolName = EventWrestlerMatch.TeamName
-join	WrestlerRating
-on		EventWrestlerMatch.EventWrestlerID = WrestlerRating.EventWrestlerID
-		and WeekEvents.EventDate between dateadd(day, -6, WrestlerRating.PeriodEndDate) and WrestlerRating.PeriodEndDate
-where	coalesce(EventMatch.Division, 'hs') like 'hs%'
-		or EventMatch.Division = 'jv'
-		or EventMatch.Division like '%high school%';
+select	EventID
+		, EventDate
+		, EventName
+		, SchoolID
+		, MatchID
+		, Division
+		, WeightClass
+		, RoundName
+		, WinType
+		, WrestlerName
+		, TeamName
+		, IsWinner
+		, EventWrestlerID
+		, Rating
+		, PeriodEndDate
+from	(
+		select	distinct WeekEvents.EventID
+				, WeekEvents.EventDate
+				, WeekEvents.EventName
+				, WeekEvents.SchoolID
+				, MatchID = EventMatch.ID
+				, Division = case 
+					when EventMatch.division like 'hs%' or EventMatch.Division like '%high school%' then 'HS'
+					when EventMatch.Division is not null then EventMatch.Division
+					when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
+					when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
+					when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
+					when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
+					when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
+					when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
+					when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
+					else 'HS' end
+				, EventMatch.WeightClass
+				, EventMatch.RoundName
+				, EventMatch.WinType
+				, WrestlerName = EventWrestler.WrestlerName
+				, EventWrestlerMatch.TeamName
+				, EventWrestlerMatch.IsWinner
+				, WrestlerRating.EventWrestlerID
+				, WrestlerRating.Rating
+				, WrestlerRating.PeriodEndDate
+		from	#WeekEvents WeekEvents
+		join	EventMatch
+		on		WeekEvents.EventID = EventMatch.EventID
+		join	EventWrestlerMatch
+		on		EventMatch.ID = EventWrestlerMatch.EventMatchID
+				and WeekEvents.EventSchoolName = EventWrestlerMatch.TeamName
+		join	EventWrestler
+		on		EventWrestlerMatch.EventWrestlerID = EventWrestler.ID
+		left join
+				WrestlerRating
+		on		EventWrestlerMatch.EventWrestlerID = WrestlerRating.EventWrestlerID
+				and WeekEvents.EventDate between dateadd(day, -6, WrestlerRating.PeriodEndDate) and WrestlerRating.PeriodEndDate
+		) EventData
+where	Division in ('HS', 'JV');
+
+set nocount off;

@@ -1,12 +1,12 @@
 with WrestlerImprovement as (
-select	Division = case when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity' else 'JV' end
+select	Division = EventRatings.Division
 		, Rank = rank() over (
-			partition by case when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity' else 'JV' end
-			order by WrestlerRating.Rating - PreviousRating.PreviousRating desc
+			partition by EventRatings.Division
+			order by EventRatings.Rating - PreviousRating.PreviousRating desc
 			)
-		, Wrestler = EventWrestler.WrestlerName
+		, Wrestler = EventRatings.WrestlerName
 		, [Key Wins] = replace(trim(string_agg(
-			case when EventWrestlerMatch.IsWinner = 1 then
+			case when EventRatings.IsWinner = 1 then
 				concat(
 					'- Defeated '
 					, OpponentMatch.WrestlerName
@@ -16,38 +16,28 @@ select	Division = case when coalesce(EventMatch.Division, 'hs') like 'hs%' or Ev
 				)
 			else ''
 			end
-			, '\n') within group (order by EventMatch.ID)), '\n\n', '\n')
-		, Improvement = WrestlerRating.Rating - PreviousRating.PreviousRating
-from	#WeekEvents WeekEvents
-join	EventMatch
-on		WeekEvents.EventID = EventMatch.EventID
-join	EventWrestlerMatch
-on		EventMatch.ID = EventWrestlerMatch.EventMatchID
-		and WeekEvents.EventSchoolName = EventWrestlerMatch.TeamName
-join	EventWrestler
-on		EventWrestlerMatch.EventWrestlerID = EventWrestler.ID
-join	WrestlerRating
-on		EventWrestlerMatch.EventWrestlerID = WrestlerRating.EventWrestlerID
-		and WeekEvents.EventDate between dateadd(day, -6, WrestlerRating.PeriodEndDate) and WrestlerRating.PeriodEndDate
+			, '\n') within group (order by EventRatings.MatchID)), '\n\n', '\n')
+		, Improvement = EventRatings.Rating - PreviousRating.PreviousRating
+from	#EventRatings EventRatings
 join	EventWrestlerMatch OpponentMatch
-on		EventWrestlerMatch.EventMatchID = OpponentMatch.EventMatchID
-		and EventWrestlerMatch.EventWrestlerID <> OpponentMatch.EventWrestlerID
+on		EventRatings.MatchID = OpponentMatch.EventMatchID
+		and EventRatings.EventWrestlerID <> OpponentMatch.EventWrestlerID
 cross apply (
 		select	top 1
 				PreviousRating = WrestlerPreviousRating.Rating
 		from	WrestlerRating WrestlerPreviousRating
-		where	WrestlerPreviousRating.EventWrestlerID = WrestlerRating.EventWrestlerID
-				and WrestlerPreviousRating.PeriodEndDate < WrestlerRating.PeriodEndDate
+		where	WrestlerPreviousRating.EventWrestlerID = EventRatings.EventWrestlerID
+				and WrestlerPreviousRating.PeriodEndDate < EventRatings.PeriodEndDate
 		order by
 				WrestlerPreviousRating.PeriodEndDate desc
 		) PreviousRating
-where	WeekEvents.SchoolID = 71 -- Fort Mill
+where	EventRatings.SchoolID = 71 -- Fort Mill
 group by
-		case when coalesce(EventMatch.Division, 'hs') like 'hs%' or EventMatch.Division like '%high school%' then 'Varsity' else 'JV' end
-		, EventWrestler.WrestlerName
-		, WrestlerRating.Rating
+		EventRatings.Division
+		, EventRatings.WrestlerName
+		, EventRatings.Rating
 		, PreviousRating.PreviousRating
-having	WrestlerRating.Rating - PreviousRating.PreviousRating > 10
+having	EventRatings.Rating - PreviousRating.PreviousRating > 10
 )
 select	Division
 		, [Rank]
