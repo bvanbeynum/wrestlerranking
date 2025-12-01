@@ -1,15 +1,11 @@
-select
-	EventWrestlerMatch.EventWrestlerID
-from
-	EventWrestlerMatch
-join EventMatch
-on
-		EventWrestlerMatch.EventMatchID = EventMatch.ID
+select 	EventWrestlerMatch.EventWrestlerID
+from	EventWrestlerMatch
+join 	EventMatch
+on		EventWrestlerMatch.EventMatchID = EventMatch.ID
 join Event
-on
-		EventMatch.EventID = Event.ID
+on		EventMatch.EventID = Event.ID
 group by
-	EventWrestlerMatch.EventWrestlerID
+		EventWrestlerMatch.EventWrestlerID
 having
-	min(Event.EventDate) <= ?
-	and max(Event.EventDate) >= ?;
+		min(Event.EventDate) <= ?
+		and max(Event.EventDate) >= ?;

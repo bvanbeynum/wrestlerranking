@@ -68,18 +68,28 @@ while currentDate <= maxDate:
 	latestRatings = executeQuery(connection, "get_latest_wrestler_ratings")
 	for rating in latestRatings:
 		if rating.EventWrestlerID in activeWrestlers:
-			players[rating.EventWrestlerID] = glicko2.Player(rating=float(rating.Rating), rd=float(rating.Deviation))
+			players[rating.EventWrestlerID] = {
+				"varsity": glicko2.Player(rating=float(rating.Rating), rd=float(rating.Deviation)),
+				"jv": glicko2.Player(rating=float(rating.JVRating), rd=float(rating.JVDeviation)) if rating.JVRating and rating.JVDeviation else glicko2.Player(rating=1500, rd=500, vol=0.06),
+				"ms": glicko2.Player(rating=float(rating.MSRating), rd=float(rating.MSDeviation)) if rating.MSRating and rating.MSDeviation else glicko2.Player(rating=1500, rd=500, vol=0.06),
+				"girls": glicko2.Player(rating=float(rating.GirlsRating), rd=float(rating.GirlsDeviation)) if rating.GirlsRating and rating.GirlsDeviation else glicko2.Player(rating=1500, rd=500, vol=0.06),
+			}
 
 	# Initialize any new active wrestlers with default ratings.
 	for wrestlerId in activeWrestlers:
 		if wrestlerId not in players:
-			players[wrestlerId] = glicko2.Player(rating=1500, rd=500, vol=0.06)
-
+			players[wrestlerId] = {
+				"varsity": glicko2.Player(rating=1500, rd=500, vol=0.06),
+				"jv": glicko2.Player(rating=1500, rd=500, vol=0.06),
+				"ms": glicko2.Player(rating=1500, rd=500, vol=0.06),
+				"girls": glicko2.Player(rating=1500, rd=500, vol=0.06)
+			}
+			
 	# Get the match outcomes for the current week.
 	weeklyMatchOutcomes = executeQuery(connection, "get_weekly_match_outcomes", (currentDate, weekEnd))
 
 	# Store the results for each player for the current week.
-	playerResults = {playerId: [] for playerId in players.keys()}
+	playerResults = {playerId: { "varsity": [], "jv": [], "ms": [], "girls": [] } for playerId in players.keys()}
 	for outcome in weeklyMatchOutcomes:
 		winnerId = outcome.WinnerID
 		loserId = outcome.LoserID
@@ -97,26 +107,71 @@ while currentDate <= maxDate:
 				scoreRank = 0.7
 			
 			# Append the opponent's rating, RD, and the outcome.
-			playerResults[winnerId].append((loser.rating, loser.rd, scoreRank))
-			playerResults[loserId].append((winner.rating, winner.rd, 1 - scoreRank))
-
+			if outcome.Division == "HS":
+				playerResults[winnerId]["varsity"].append((loser["varsity"].rating, loser["varsity"].rd, scoreRank))
+				playerResults[loserId]["varsity"].append((winner["varsity"].rating, winner["varsity"].rd, 1 - scoreRank))
+			elif outcome.Division == "JV":
+				playerResults[winnerId]["jv"].append((loser["jv"].rating, loser["jv"].rd, scoreRank))
+				playerResults[loserId]["jv"].append((winner["jv"].rating, winner["jv"].rd, 1 - scoreRank))
+			elif outcome.Division == "MS":
+				playerResults[winnerId]["ms"].append((loser["ms"].rating, loser["ms"].rd, scoreRank))
+				playerResults[loserId]["ms"].append((winner["ms"].rating, winner["ms"].rd, 1 - scoreRank))
+			elif outcome.Division == "Girls":
+				playerResults[winnerId]["girls"].append((loser["girls"].rating, loser["girls"].rd, scoreRank))
+				playerResults[loserId]["girls"].append((winner["girls"].rating, winner["girls"].rd, 1 - scoreRank))
+				
 	# Update the Glicko-2 ratings for all active players for the week.
 	for playerId, player in players.items():
 		# Adjust RD for inactivity before processing games
-		player._preRatingRD()
+		player["varsity"]._preRatingRD()
+		player["jv"]._preRatingRD()
+		player["ms"]._preRatingRD()
+		player["girls"]._preRatingRD()
 
-	for playerId, results in playerResults.items():
-		if results:
-			# If the player competed, update their rating based on the results.
-			ratings, rds, outcomes = zip(*results)
-			players[playerId].update_player(ratings, rds, outcomes)
+	for playerId, resultType in playerResults.items():
+		if resultType["varsity"] and len(resultType["varsity"]) > 0:
+			ratings, rds, outcomes = zip(*resultType["varsity"])
+			players[playerId]["varsity"].update_player(ratings, rds, outcomes)
+		
+		if resultType["jv"] and len(resultType["jv"]) > 0:
+			ratings, rds, outcomes = zip(*resultType["jv"])
+			players[playerId]["jv"].update_player(ratings, rds, outcomes)
+
+		if resultType["ms"] and len(resultType["ms"]) > 0:
+			ratings, rds, outcomes = zip(*resultType["ms"])
+			players[playerId]["ms"].update_player(ratings, rds, outcomes)
+
+		if resultType["girls"] and len(resultType["girls"]) > 0:
+			ratings, rds, outcomes = zip(*resultType["girls"])
+			players[playerId]["girls"].update_player(ratings, rds, outcomes)
 
 	# Prepare batch inserts for wrestler ratings and updates for event wrestlers.
 	insert_wrestler_rating_params = []
 	update_event_wrestler_params = []
 	for playerId, player in players.items():
-		insert_wrestler_rating_params.append((playerId, weekEnd, player.rating, player.rd))
-		update_event_wrestler_params.append((player.rating, player.rd, playerId))
+		insert_wrestler_rating_params.append((
+			playerId, 
+			weekEnd, 
+			player["varsity"].rating, 
+			player["varsity"].rd,
+			player["jv"].rating,
+			player["jv"].rd,
+			player["ms"].rating,
+			player["ms"].rd,
+			player["girls"].rating,
+			player["girls"].rd
+			))
+
+		update_event_wrestler_params.append((
+			player["varsity"].rating, 
+			player["varsity"].rd, 
+			player["jv"].rating, 
+			player["jv"].rd, 
+			player["ms"].rating, 
+			player["ms"].rd, 
+			player["girls"].rating, 
+			player["girls"].rd,
+			playerId))
 
 	# Execute batch inserts and updates.
 	executeQuery(connection, "insert_wrestler_rating", insert_wrestler_rating_params, many=True)

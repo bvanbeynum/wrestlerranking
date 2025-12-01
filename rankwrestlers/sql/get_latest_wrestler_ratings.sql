@@ -3,6 +3,12 @@ with latest_rating as (
 		EventWrestlerID
 		, Rating
 		, Deviation
+		, JVRating
+		, JVDeviation
+		, MSRating
+		, MSDeviation
+		, GirlsRating
+		, GirlsDeviation
 		, row_number() over(partition by EventWrestlerID order by PeriodEndDate desc) as row_num
 	from
 		WrestlerRating
@@ -11,6 +17,12 @@ select
 	EventWrestlerID
 	, Rating
 	, Deviation
+	, JVRating
+	, JVDeviation
+	, MSRating
+	, MSDeviation
+	, GirlsRating
+	, GirlsDeviation
 from
 	latest_rating
 where

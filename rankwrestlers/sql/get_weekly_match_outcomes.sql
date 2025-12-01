@@ -12,6 +12,7 @@ from	(
 					when EventMatch.Division in ('10U', '8U', '12U', '14U') then 'MS'
 					when EventMatch.Division like '%girl%' then 'Girls'
 					when EventMatch.division in ('tot', 'bantam', 'midget', '6U', 'elem') then 'Youth'
+					when EventMatch.Division like '%under%' then 'Youth'
 					when EventMatch.Division is not null then EventMatch.Division
 					when EventMatch.Division is null and Event.EventName like '% middle%' then 'MS'
 					when EventMatch.Division is null and Event.EventName like '% ms %' then 'MS'

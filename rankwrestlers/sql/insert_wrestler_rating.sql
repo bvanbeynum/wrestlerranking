@@ -3,9 +3,21 @@ insert into WrestlerRating (
 	, PeriodEndDate
 	, Rating
 	, Deviation
+	, JVRating
+	, JVDeviation
+	, MSRating
+	, MSDeviation
+	, GirlsRating
+	, GirlsDeviation
 )
 values	(
 	?
+	, ?
+	, ?
+	, ?
+	, ?
+	, ?
+	, ?
 	, ?
 	, ?
 	, ?
