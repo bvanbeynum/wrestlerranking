@@ -1,59 +1,30 @@
 with ConsiWrestler as (
-select	Division = case when EventMatch.Division is not null then EventMatch.Division
-			when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
-			when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
-			when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
-			else 'HS' end
+select	EventRatings.Division
 		, Rank = rank() over (
-			partition by case when EventMatch.Division is not null then EventMatch.Division
-				when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
-				when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
-				when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
-				when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
-				when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
-				when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
-				when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
-				else 'HS' end
+			partition by EventRatings.Division
 			order by sum(case 
-				when EventMatch.RoundName like '3rd Place%' then 1 
-				when EventMatch.RoundName like '%th Place%' then 1 
-				when EventMatch.RoundName like 'cons%' then 1 
+				when EventRatings.RoundName like '3rd Place%' then 1 
+				when EventRatings.RoundName like '%th Place%' then 1 
+				when EventRatings.RoundName like 'cons%' then 1 
 				else 0 end) desc
 			)
 		, Wrestler = EventWrestler.WrestlerName
 		, ConsiMatches = sum(case 
-			when EventMatch.RoundName like '3rd Place%' then 1 
-			when EventMatch.RoundName like '%th Place%' then 1 
-			when EventMatch.RoundName like 'cons%' then 1 
+			when EventRatings.RoundName like '3rd Place%' then 1 
+			when EventRatings.RoundName like '%th Place%' then 1 
+			when EventRatings.RoundName like 'cons%' then 1 
 			else 0 end)
-from	#WeekEvents WeekEvents
-join	EventMatch
-on		WeekEvents.EventID = EventMatch.EventID
-join	EventWrestlerMatch
-on		EventMatch.ID = EventWrestlerMatch.EventMatchID
-		and WeekEvents.EventSchoolName = EventWrestlerMatch.TeamName
+from	#EventRatings EventRatings
 join	EventWrestler
-on		EventWrestlerMatch.EventWrestlerID = EventWrestler.ID
-where	WeekEvents.SchoolID = 71 -- Fort Mill
+on		EventRatings.EventWrestlerID = EventWrestler.ID
+where	EventRatings.SchoolID = 71 -- Fort Mill
 group by
 		EventWrestler.WrestlerName
-		, case when EventMatch.Division is not null then EventMatch.Division
-			when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '%/ms %' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '% ms/%' then 'MS'
-			when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
-			when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
-			when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
-			else 'HS' end
+		, EventRatings.division
 having	sum(case 
-			when EventMatch.RoundName like '3rd Place%' then 1 
-			when EventMatch.RoundName like '%th Place%' then 1 
-			when EventMatch.RoundName like 'cons%' then 1 
+			when EventRatings.RoundName like '3rd Place%' then 1 
+			when EventRatings.RoundName like '%th Place%' then 1 
+			when EventRatings.RoundName like 'cons%' then 1 
 			else 0 end) > 1
 )
 select	Division

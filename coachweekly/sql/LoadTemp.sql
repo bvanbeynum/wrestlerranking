@@ -85,7 +85,14 @@ from	(
 				, WeekEvents.SchoolID
 				, MatchID = EventMatch.ID
 				, Division = case 
-					when EventMatch.division like 'hs%' or EventMatch.Division like '%high school%' then 'HS'
+					when EventMatch.Division like 'jv%' or EventMatch.Division like '%junior%' then 'JV'
+					when EventMatch.division like 'hs%'  then 'HS'
+					when EventMatch.Division like '%varsity%'  then 'HS'
+					when EventMatch.Division like '%high%' then 'HS'
+					when EventMatch.division like '%ms%' or EventMatch.Division like '%middle%' then 'HS'
+					when EventMatch.Division in ('10U', '8U', '12U', '14U') then 'MS'
+					when EventMatch.Division like '%girl%' then 'Girls'
+					when EventMatch.division in ('tot', 'bantam', 'midget', '6U', 'elem') then 'Youth'
 					when EventMatch.Division is not null then EventMatch.Division
 					when EventMatch.Division is null and WeekEvents.EventName like '% middle%' then 'MS'
 					when EventMatch.Division is null and WeekEvents.EventName like '% ms %' then 'MS'
@@ -94,7 +101,13 @@ from	(
 					when EventMatch.Division is null and WeekEvents.EventName like '% jv %' then 'JV'
 					when EventMatch.Division is null and WeekEvents.EventName like '% jv/%' then 'JV'
 					when EventMatch.Division is null and WeekEvents.EventName like '%/jv%' then 'JV'
-					else 'HS' end
+					when EventMatch.Division is null and WeekEvents.EventName like '% jv%' then 'JV'
+					when EventMatch.Division is null and WeekEvents.EventName like 'jv %' then 'JV'
+					when EventMatch.Division is null and WeekEvents.EventName like '%girl%' then 'Girls'
+					when EventMatch.Division is null and WeekEvents.EventName like '%women%' then 'Girls'
+					when EventMatch.Division is null and WeekEvents.EventName like '%woman%' then 'Girls'
+					else 'HS'
+					end
 				, EventMatch.WeightClass
 				, EventMatch.RoundName
 				, EventMatch.WinType

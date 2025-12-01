@@ -74,6 +74,7 @@ def loadDualResults(dataDate, sheetsService):
 	opponentName = None
 	fmScore = None
 	oppScore = None
+	sevenDaysBeforeLoad = dataDate + timedelta(days=-7)
 
 	for row in allrows:
 		# Skip empty rows
@@ -85,7 +86,7 @@ def loadDualResults(dataDate, sheetsService):
 			if row[0]:
 				currentEventDateStr = row[0].strip()
 				dateOfEvent = datetime.strptime(currentEventDateStr, "%m/%d/%Y").date()
-				if dateOfEvent > dataDate.date():
+				if dateOfEvent > dataDate.date() or dateOfEvent < sevenDaysBeforeLoad.date():
 					break
 				eventDate = currentEventDateStr
 			
@@ -153,7 +154,7 @@ def loadEvents(loadDate, sheetsService):
 			continue
 		
 		try:
-			eventDate = datetime.strptime(row[2], "%m/%d/%Y")
+			eventDate = datetime.strptime(row[1], "%m/%d/%Y")
 		except (ValueError, IndexError):
 			continue
 
@@ -208,7 +209,7 @@ def loadSQLData(loadDate):
 
 	logMessage("Connect to database")
 
-	db = sqlalchemy.create_engine(f"mssql+pyodbc://{config['database']['user']}:{config['database']['password']}@{config['database']['server']}/{config['database']['database']}?driver={quote_plus("ODBC Driver 18 for SQL Server")}&encrypt=no", isolation_level="AUTOCOMMIT")
+	db = sqlalchemy.create_engine(f"mssql+pyodbc://{config['database']['user']}:{config['database']['password']}@{config['database']['server']}/{config['database']['database']}?driver={quote_plus('ODBC Driver 18 for SQL Server')}&encrypt=no", isolation_level="AUTOCOMMIT")
 
 	with db.connect() as cn:
 		logMessage("Create temp tables")
@@ -359,12 +360,23 @@ Here are your instructions:
 - Don't include a subject.
 
 Email Structure
-1 Upcoming Events
-2 Dual Results
-3 Additional Information
-4 Performance Highlights
-
+- Upcoming Events"""
+	
+	if len(dualResults) > 0:
+		prompt += f"""
+- Dual Results"""
+		
+	prompt += f"""
+- Additional Information
+"""
+	
+	if len(dataResults["placers"]) > 0 or len(dataResults["ironman"]) > 0 or len(dataResults["forged"]) > 0 or len(dataResults["grinder"]) > 0:
+		prompt += f"""
+- Performance Highlights
+"""
+	prompt += f"""
 ---
+
 ** Email CSS **
 
 {templateCSS}
@@ -400,15 +412,15 @@ Additional Information
 { "\n---\n".join(prompts) }
 """
 
-	if len(dataResults["ironman"]) > 0 or len(dataResults["forged"]) > 0 or len(dataResults["grinder"]) > 0:
+	if len(dataResults["placers"]) > 0 or len(dataResults["ironman"]) > 0 or len(dataResults["forged"]) > 0 or len(dataResults["grinder"]) > 0:
 		prompt += f"""
 ---
 
 ** Individual Performance Highlights **
 """
 	
-	if len(dataResults["placers"]) > 0:
-		prompt += f"""
+		if len(dataResults["placers"]) > 0:
+			prompt += f"""
 ---
 Placers
 {dataResults["placers"].to_html(index=False, classes="table")}
@@ -416,22 +428,22 @@ Placers
 ---
 """
 
-	if len(dataResults["ironman"]) > 0:
-		prompt += f"""
+		if len(dataResults["ironman"]) > 0:
+			prompt += f"""
 ---
 Ironman
 {dataResults["ironman"].to_html(index=False, classes="table")}
 """
 
-	if len(dataResults["forged"]) > 0:
-		prompt += f"""
+		if len(dataResults["forged"]) > 0:
+			prompt += f"""
 ---
 Forged in Fire
 {dataResults["forged"].to_html(index=False, classes="table")}
 """
 	
-	if len(dataResults["grinder"]) > 0:
-		prompt += f"""
+		if len(dataResults["grinder"]) > 0:
+			prompt += f"""
 ---
 Grinder
 {dataResults["grinder"].to_html(index=False, classes="table")}

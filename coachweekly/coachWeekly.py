@@ -46,7 +46,8 @@ def loadSQL():
 logMessage(f"------------- Setup")
 
 sql = loadSQL()
-dataDate = "11/24/2025"
+# dataDate = "11/24/2025"
+dataDate = datetime.datetime.strftime(datetime.datetime.now(), "%m/%d/%Y")
 
 logMessage(f"Connecting to DB")
 
