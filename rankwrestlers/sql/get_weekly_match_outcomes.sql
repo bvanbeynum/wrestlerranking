@@ -42,4 +42,3 @@ from	(
 		where	Event.EventDate between ? and ?
 				and EventMatch.WinType not in ('bye', 'for', 'nc')
 		) DivisionMapping
-where	DivisionMapping.Division = 'HS'

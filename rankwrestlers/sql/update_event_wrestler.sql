@@ -9,5 +9,6 @@ set
 	, MSDeviation = ?
 	, GirlsRating = ?
 	, GirlsDeviation = ?
+	, ModifiedDate = getdate()
 where
 	ID = ?;
