@@ -172,8 +172,7 @@ def loadEvents(loadDate, sheetsService):
 				"time": row[3],
 				"event": row[4],
 				"location": row[5],
-				"address": row[6],
-				"payment": row[7] if len(row) > 7 else ""
+				"address": row[6]
 			})
 
 		elif len(row) > 6 and row[0] == "JV":
@@ -182,8 +181,7 @@ def loadEvents(loadDate, sheetsService):
 				"time": row[3],
 				"event": row[4],
 				"location": row[5],
-				"address": row[6],
-				"payment": row[7] if len(row) > 7 else ""
+				"address": row[6]
 			})
 
 		elif len(row) > 6 and row[0] == "Middle":
@@ -192,8 +190,7 @@ def loadEvents(loadDate, sheetsService):
 				"time": row[3],
 				"event": row[4],
 				"location": row[5],
-				"address": row[6],
-				"payment": row[7] if len(row) > 7 else ""
+				"address": row[6]
 			})
 	
 	logMessage(f"Varsity: {len(varsityEvents)}, JV: {len(jvEvents)}, Middle: {len(msEvents)}")
