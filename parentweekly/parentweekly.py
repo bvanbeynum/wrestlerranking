@@ -44,7 +44,7 @@ def loadSQL():
 	
 	return sql
 
-def loadDualResults(dataDate, sheetsService):
+def loadVarsityDuals(dataDate, sheetsService):
 	sheetId = "1-jIN_qDGDd9GC2FNQmfN8ysvddnOmu8-9Lwhnabv4a8"
 	tabName = "2025-26 Duals" #"2024-2025 Duals"
 	totalColumnIndex = None
@@ -108,15 +108,12 @@ def loadDualResults(dataDate, sheetsService):
 					oppScore = None
 
 				if fmScore is not None and oppScore is not None and eventDate is not None:
-					dateOfEvent = datetime.strptime(eventDate, "%m/%d/%Y").date()
-					isPastWeek = (datetime.now().date() - dateOfEvent).days <= 7 and (datetime.now().date() - dateOfEvent).days >= 0
-					
 					dualData.append({
+						"team": "Varsity",
 						"eventDate": eventDate,
 						"opponentName": opponentName,
 						"fmScore": fmScore,
-						"oppScore": oppScore,
-						"isPastWeek": isPastWeek
+						"oppScore": oppScore
 					})
 					
 					eventDate = None
@@ -127,10 +124,74 @@ def loadDualResults(dataDate, sheetsService):
 	logMessage(f"found { len(dualData)} records")
 
 	if not dualData:
-		return pd.DataFrame(columns=["eventDate", "opponentName", "fmScore", "oppScore", "isPastWeek"])
+		return pd.DataFrame(columns=["team", "eventDate", "opponentName", "fmScore", "oppScore"])
 
 	dualResults = pd.DataFrame(dualData)
 	return dualResults
+
+def loadOtherDuals(dataDate, sheetsService):
+	sheetId = "1-9X-ZIf_AmOe6iVCIblmAor_qdnucEZW1awvV5-ubRE"
+	tabName = "Results"
+	dualData = []
+
+	result = sheetsService.spreadsheets().values().get(
+		spreadsheetId=sheetId,
+		range=tabName
+	).execute()
+	allrows = result.get('values', [])
+
+	if not allrows or len(allrows) < 1:
+		return pd.DataFrame(columns=["team", "eventDate", "opponentName", "fmScore", "oppScore"])
+
+	header = [h.strip().lower() for h in allrows[0]]
+	try:
+		dateCol = header.index("date")
+		vsCol = header.index("vs")
+		fmScoreCol = header.index("fm score")
+		oppScoreCol = header.index("opponent score")
+		teamCol = header.index("team")
+	except ValueError as e:
+		raise Exception(f"Missing required column in varsity duals sheet: {e}")
+
+	sevenDaysBeforeLoad = dataDate + timedelta(days=-7)
+
+	for row in allrows[1:]: # Skip header
+		if not any(row):
+			continue
+		
+		if len(row) <= teamCol:
+			continue
+
+		try:
+			eventDateStr = row[dateCol].strip()
+			dateOfEvent = datetime.strptime(eventDateStr, "%m/%d/%Y")
+		except (ValueError, IndexError):
+			continue
+
+		if dateOfEvent.date() > dataDate.date() or dateOfEvent.date() < sevenDaysBeforeLoad.date():
+			continue
+
+		team = row[teamCol].strip() if len(row) > teamCol else None
+		opponentName = row[vsCol].strip() if len(row) > vsCol else None
+		fmScore = row[fmScoreCol].strip() if len(row) > fmScoreCol else None
+		oppScore = row[oppScoreCol].strip() if len(row) > oppScoreCol else None
+
+		if opponentName and fmScore and oppScore:
+			try:
+				dualData.append({
+					"team": team if team else "",
+					"eventDate": dateOfEvent.strftime("%m/%d/%Y"),
+					"opponentName": opponentName,
+					"fmScore": int(fmScore),
+					"oppScore": int(oppScore)
+				})
+			except ValueError:
+				continue
+
+	if not dualData:
+		return pd.DataFrame(columns=["team", "eventDate", "opponentName", "fmScore", "oppScore"])
+
+	return pd.DataFrame(dualData)
 
 def loadEvents(loadDate, sheetsService):
 	sheetId = "1fbXj-36b1jvVe3rsdd4MgsBRimb-52VvhqlTzUgh_5c"
@@ -273,8 +334,8 @@ def getParentEmails(sheetsService):
 logMessage("---- Startup ----")
 
 sql = loadSQL()
-# loadDate = datetime(2025, 11, 17)
 loadDate = datetime.now()
+loadDate = datetime(2025, 12, 8)
 
 with open("./config.json", "r") as reader:
 	config = json.load(reader)
@@ -299,9 +360,15 @@ logMessage("---- Load Data ----")
 
 logMessage("Load Dual Results")
 try:
-	dualResults = loadDualResults(loadDate, sheetsService)
+	dualResults = loadVarsityDuals(loadDate, sheetsService)
+
+	logMessage("Load Other Team Duals")
+	otherDuals = loadOtherDuals(loadDate, sheetsService)
+	if not otherDuals.empty:
+		dualResults = pd.concat([dualResults, otherDuals], ignore_index=True)
+
 except Exception as error:
-	errorMessage = f"Error dual results: {error}"
+	errorMessage = f"Error loading dual results: {error}"
 	errorLogging(errorMessage)
 	sys.exit(1)
 
@@ -486,20 +553,20 @@ try:
 		smtp.send_message(mimeMessage)
 
 	# Create drafts
-	imap = imaplib.IMAP4_SSL("imap.gmail.com")
-	imap.login("wrestlingfortmill@gmail.com", config['googleAppPassword'])
+	# imap = imaplib.IMAP4_SSL("imap.gmail.com")
+	# imap.login("wrestlingfortmill@gmail.com", config['googleAppPassword'])
 
-	for emailIndex in range(0, len(parentEmails), batchSize):
-		emailBatch = parentEmails[emailIndex:emailIndex+batchSize]
+	# for emailIndex in range(0, len(parentEmails), batchSize):
+	# 	emailBatch = parentEmails[emailIndex:emailIndex+batchSize]
 	
-		mimeMessage = MIMEMultipart()
-		mimeMessage['To'] = f'"Fort Mill Wrestling" <wrestlingfortmill@gmail.com>'
-		mimeMessage['Bcc'] = ','.join(emailBatch)
-		mimeMessage['Subject'] = subject
-		mimeMessage.attach(MIMEText(inlinedHtml, 'html'))
+	# 	mimeMessage = MIMEMultipart()
+	# 	mimeMessage['To'] = f'"Fort Mill Wrestling" <wrestlingfortmill@gmail.com>'
+	# 	mimeMessage['Bcc'] = ','.join(emailBatch)
+	# 	mimeMessage['Subject'] = subject
+	# 	mimeMessage.attach(MIMEText(inlinedHtml, 'html'))
 
-		imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
-		logMessage(f"Created draft for batch {emailIndex//batchSize + 1}")
+	# 	imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
+	# 	logMessage(f"Created draft for batch {emailIndex//batchSize + 1}")
 
 except Exception as error:
 	errorMessage = f"Error sending email: {error}"
