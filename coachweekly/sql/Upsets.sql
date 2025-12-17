@@ -4,6 +4,7 @@
 			, WinnerMatch.MatchID
 			, WinnerMatch.RoundName
 			, WinnerMatch.WeightClass
+			, WinnerMatch.WinType
 			, WinnerName = WinnerMatch.WrestlerName
 			, WinnerTeam = WinnerMatch.TeamName
 			, WinnerRating = WinnerMatch.Rating
@@ -42,10 +43,9 @@ select	top 10
 		[Rank] = row_number() over (order by BiggestUpsetLosses.LoserRating desc)
 		, [Weight Class] = BiggestUpsetLosses.WeightClass
 		, Round = BiggestUpsetLosses.RoundName
-		, Winner = BiggestUpsetLosses.WinnerName
-		, [Winner Team] = BiggestUpsetLosses.WinnerTeam
-		, Loser = BiggestUpsetLosses.LoserName
-		, [Loser Team] = BiggestUpsetLosses.LoserTeam
+		, Winner = BiggestUpsetLosses.WinnerName + ' (' + BiggestUpsetLosses.WinnerTeam + ')'
+		, Loser = BiggestUpsetLosses.LoserName + ' (' + BiggestUpsetLosses.LoserTeam + ')'
+		, WinType = BiggestUpsetLosses.WinType
 		, Event = BiggestUpsetLosses.EventName
 from	BiggestUpsetLosses
 where	BiggestUpsetRank = 1

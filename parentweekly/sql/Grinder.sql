@@ -28,7 +28,7 @@ having	sum(case
 			else 0 end) > 1
 )
 select	Division
-		, [Rank]
+		-- , [Rank]
 		, Wrestler
 		, [Consi Matches] = ConsiMatches
 from	ConsiWrestler

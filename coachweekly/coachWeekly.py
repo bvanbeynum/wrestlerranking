@@ -1,4 +1,5 @@
 import os
+import time
 import sys
 import json
 import datetime
@@ -9,6 +10,7 @@ import premailer
 from urllib.parse import quote_plus
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import imaplib
 import smtplib
 
 with open("./config.json", "r") as reader:
@@ -179,6 +181,13 @@ Ironman
 
 	if response.status_code == 200:
 		geminiResponse = response.json()['candidates'][0]['content']['parts'][0]['text']
+		
+		if geminiResponse[0:7] == "```html":
+			geminiResponse = geminiResponse[7:]
+		
+		if geminiResponse[-3:] == "```":
+			geminiResponse = geminiResponse[:-3]
+
 	else:
 		raise Exception(f"Error calling Gemini API. Status: {response.status_code}. Response: {response.text}")
 
@@ -203,10 +212,16 @@ try:
 		smtp.login("wrestlingfortmill@gmail.com", config['googleAppPassword'])
 		smtp.send_message(mimeMessage)
 
+	# Create drafts
+	imap = imaplib.IMAP4_SSL("imap.gmail.com")
+	imap.login("wrestlingfortmill@gmail.com", config['googleAppPassword'])
+
+	imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
+	logMessage(f"Created draft ")
+
 except Exception as error:
 	errorMessage = f"Error sending email: {error}"
 	errorLogging(errorMessage)
 	sys.exit(1)
-
 
 logMessage(f"------------- Complete")

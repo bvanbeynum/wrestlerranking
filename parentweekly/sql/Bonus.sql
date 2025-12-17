@@ -22,7 +22,7 @@ group by
 		, EventRatings.Division
 )
 select	Division
-		, [Rank]
+		-- , [Rank]
 		, Wrestler
 		, [Bonus Points]
 from	WrestlerBonus

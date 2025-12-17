@@ -87,7 +87,7 @@ def loadVarsityDuals(dataDate, sheetsService):
 				currentEventDateStr = row[0].strip()
 				dateOfEvent = datetime.strptime(currentEventDateStr, "%m/%d/%Y").date()
 				if dateOfEvent > dataDate.date() or dateOfEvent < sevenDaysBeforeLoad.date():
-					break
+					continue
 				eventDate = currentEventDateStr
 			
 			if row[1]:
@@ -335,7 +335,7 @@ logMessage("---- Startup ----")
 
 sql = loadSQL()
 loadDate = datetime.now()
-loadDate = datetime(2025, 12, 8)
+# loadDate = datetime(2025, 12, 8)
 
 with open("./config.json", "r") as reader:
 	config = json.load(reader)
@@ -553,20 +553,20 @@ try:
 		smtp.send_message(mimeMessage)
 
 	# Create drafts
-	# imap = imaplib.IMAP4_SSL("imap.gmail.com")
-	# imap.login("wrestlingfortmill@gmail.com", config['googleAppPassword'])
+	imap = imaplib.IMAP4_SSL("imap.gmail.com")
+	imap.login("wrestlingfortmill@gmail.com", config['googleAppPassword'])
 
-	# for emailIndex in range(0, len(parentEmails), batchSize):
-	# 	emailBatch = parentEmails[emailIndex:emailIndex+batchSize]
+	for emailIndex in range(0, len(parentEmails), batchSize):
+		emailBatch = parentEmails[emailIndex:emailIndex+batchSize]
 	
-	# 	mimeMessage = MIMEMultipart()
-	# 	mimeMessage['To'] = f'"Fort Mill Wrestling" <wrestlingfortmill@gmail.com>'
-	# 	mimeMessage['Bcc'] = ','.join(emailBatch)
-	# 	mimeMessage['Subject'] = subject
-	# 	mimeMessage.attach(MIMEText(inlinedHtml, 'html'))
+		mimeMessage = MIMEMultipart()
+		mimeMessage['To'] = f'"Fort Mill Wrestling" <wrestlingfortmill@gmail.com>'
+		mimeMessage['Bcc'] = ','.join(emailBatch)
+		mimeMessage['Subject'] = subject
+		mimeMessage.attach(MIMEText(inlinedHtml, 'html'))
 
-	# 	imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
-	# 	logMessage(f"Created draft for batch {emailIndex//batchSize + 1}")
+		imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
+		logMessage(f"Created draft for batch {emailIndex//batchSize + 1}")
 
 except Exception as error:
 	errorMessage = f"Error sending email: {error}"

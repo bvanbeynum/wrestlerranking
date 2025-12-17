@@ -23,7 +23,7 @@ on		EventRatings.EventWrestlerID = EventWrestler.ID
 where	EventRatings.SchoolID = 71 -- Fort Mill
 )
 select	Division
-		, Rank
+		-- , Rank
 		, Wrestler
 		, Opponents
 from	(

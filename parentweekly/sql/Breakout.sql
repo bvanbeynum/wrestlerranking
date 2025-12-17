@@ -40,7 +40,7 @@ group by
 having	EventRatings.Rating - PreviousRating.PreviousRating > 10
 )
 select	Division
-		, [Rank]
+		-- , [Rank]
 		, Wrestler
 		, [Key Wins]
 from	WrestlerImprovement

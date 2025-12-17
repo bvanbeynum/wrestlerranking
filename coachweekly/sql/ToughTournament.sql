@@ -7,13 +7,17 @@ TopWrestlers as (
 select	EventID
 		, Wrestlers = string_agg('- ' + WrestlerName, '\n') within group (order by Rating desc)
 from	(
-		select	EventID
+		select	EventRatings.EventID
 				, EventWrestler.WrestlerName
 				, EventRatings.Rating
-				, TopRanking = row_number() over (partition by EventID order by Rating desc)
+				, TopRanking = row_number() over (partition by EventRatings.EventID order by EventRatings.Rating desc)
 		from	#EventRatings EventRatings
 		join	EventWrestler
 		on		EventRatings.EventWrestlerID = EventWrestler.ID
+		group by
+				EventRatings.EventID
+				, EventWrestler.WrestlerName
+				, EventRatings.Rating
 		) WrestlerRanking
 where	TopRanking <= 3
 group by

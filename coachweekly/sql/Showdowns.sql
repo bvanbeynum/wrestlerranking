@@ -4,6 +4,7 @@
 			, WinnerMatch.MatchID
 			, WinnerMatch.RoundName
 			, WinnerMatch.WeightClass
+			, WinnerMatch.WinType
 			, WinnerName = WinnerMatch.WrestlerName
 			, WinnerTeam = WinnerMatch.TeamName
 			, WinnerRating = WinnerRanking.Rating
@@ -48,10 +49,9 @@ select	top 10
 		[Rank] = row_number() over (order by Details.RatingSort desc, Details.RatingDiff asc)
 		, [Weight Class] = Details.WeightClass
 		, Round = Details.RoundName
-		, Winner = Details.WinnerName
-		, [Winner Team] = Details.WinnerTeam
-		, Loser = Details.LoserName
-		, [Loser Team] = Details.LoserTeam
+		, Winner = Details.WinnerName + ' (' + Details.WinnerTeam + ')'
+		, Loser = Details.LoserName + ' (' + Details.LoserTeam + ')'
+		, WinType = Details.WinType
 		, Event = Details.EventName
 from	ToughestMatchRankings
 join	MatchDetails as Details
@@ -70,6 +70,7 @@ group by Details.EventID
 		, Details.RatingSort
 		, Details.RatingDiff
 		, Details.MatchID
+		, Details.WinType
 order by
 		Details.RatingSort desc
 		, Details.RatingDiff asc;

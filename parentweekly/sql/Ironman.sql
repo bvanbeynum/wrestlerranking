@@ -1,5 +1,5 @@
 select	Division
-		, Rank
+		-- , Rank
 		, Wrestler = wrestlername
 		, Matches
 from	(
