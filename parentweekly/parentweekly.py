@@ -335,7 +335,7 @@ logMessage("---- Startup ----")
 
 sql = loadSQL()
 loadDate = datetime.now()
-# loadDate = datetime(2025, 12, 8)
+# loadDate = datetime(2025, 12, 15)
 
 with open("./config.json", "r") as reader:
 	config = json.load(reader)
@@ -567,6 +567,14 @@ try:
 
 		imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
 		logMessage(f"Created draft for batch {emailIndex//batchSize + 1}")
+	
+	mimeMessage = MIMEMultipart()
+	mimeMessage['To'] = f'"Joelle Brotemarkle" <Brotemarkle.joelle@gmail.com>'
+	mimeMessage['Subject'] = subject
+	mimeMessage.attach(MIMEText(inlinedHtml, 'html'))
+
+	imap.append('[Gmail]/Drafts', '', imaplib.Time2Internaldate(time.time()), mimeMessage.as_bytes())
+	logMessage(f"Created draft for Joelle Brotemarkle")
 
 except Exception as error:
 	errorMessage = f"Error sending email: {error}"
