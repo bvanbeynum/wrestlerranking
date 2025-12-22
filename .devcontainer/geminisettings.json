@@ -1,0 +1,10 @@
+{
+	"mcpServers": {
+		"mssql": {
+			"url": "http://dreher.beynum.com:3333/sse"
+		},
+		"wrestlers": {
+			"url": "http://dreher.beynum.com:3331"
+		}
+	}
+}

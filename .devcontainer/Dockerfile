@@ -43,6 +43,9 @@ RUN python -m pip install --upgrade pip
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
+RUN mkdir -p /home/appuser/.gemini && chown -R appuser:appuser /home/appuser/.gemini
+COPY .devcontainer/geminisettings.json /home/appuser/.gemini/settings.json
+
 USER appuser
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
