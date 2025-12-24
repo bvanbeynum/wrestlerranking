@@ -1,5 +1,4 @@
 import os
-import time
 import sys
 import json
 import re
@@ -112,7 +111,7 @@ except Exception as error:
 errorCount = 0
 wrestlerLineage = []
 for school in schools:
-	logMessage(f"Process school { school["SchoolName"] }")
+	logMessage(f"Process school { school['SchoolName'] }")
 	
 	try:
 		dbResult = cn.execute(sqlalchemy.text(sql["WrestlersGet"]), {"SchoolID": school["SchoolID"]})
@@ -128,9 +127,9 @@ for school in schools:
 			continue
 	
 	for wrestler in wrestlers:
-		logMessage(f"Process wrestler { wrestler["WrestlerName"] }")
+		logMessage(f"Process wrestler { wrestler['WrestlerName'] }")
 
-		response = requests.get(f"{ config["millServer"] }/data/wrestler?sqlid={ wrestler["WrestlerID"] }")
+		response = requests.get(f"{ config['millServer'] }/data/wrestler?sqlid={ wrestler['WrestlerID'] }")
 		millWrestler = json.loads(response.text)["wrestlers"][0]
 		
 		if response.status_code >= 400:
@@ -199,7 +198,7 @@ for school in schools:
 
 		if len(millWrestler["lineage"]) > 0:
 			logMessage(f"Saving wrestler. {len(millWrestler['lineage'])} Lineages")
-			response = requests.post(f"{ config["millServer"] }/data/wrestler", json={ "wrestler": millWrestler })
+			response = requests.post(f"{ config['millServer'] }/data/wrestler", json={ "wrestler": millWrestler })
 
 			if response.status_code >= 400:
 				errorLogging(f"Error updating wrestler: {response.text}")
