@@ -206,7 +206,7 @@ for school in schools:
 		"name": school.SchoolName,
 		"classification": school.Classification,
 		"region": school.Region,
-		"lookupNames": school.LookupNames
+		"lookupNames": json.loads(school.LookupNames) if school.LookupNames else []
 	}
 	
 	# Add id if a match is found in wrestlerLookup
