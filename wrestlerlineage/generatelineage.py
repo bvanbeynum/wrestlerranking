@@ -111,7 +111,7 @@ except Exception as error:
 errorCount = 0
 wrestlerLineage = []
 for school in schools:
-	logMessage(f"Process school { school['SchoolName'] }")
+	logMessage(f"Process school { school['SchoolName'] } ************************")
 	
 	try:
 		dbResult = cn.execute(sqlalchemy.text(sql["WrestlersGet"]), {"SchoolID": school["SchoolID"]})
@@ -130,11 +130,16 @@ for school in schools:
 		logMessage(f"Process wrestler { wrestler['WrestlerName'] }")
 
 		response = requests.get(f"{ config['millServer'] }/data/wrestler?sqlid={ wrestler['WrestlerID'] }")
-		millWrestler = json.loads(response.text)["wrestlers"][0]
-		
 		if response.status_code >= 400:
 			errorLogging(f"Error getting wrestler: {response.text}")
 			continue
+		
+		millWrestlers = json.loads(response.text)["wrestlers"]
+		if len(millWrestlers) == 0:
+			logMessage(f"Skipping { wrestler['WrestlerName'] } ({wrestler['WrestlerID']})")
+			continue
+
+		millWrestler = millWrestlers[0]
 
 		try:
 			dbResult = cn.execute(sqlalchemy.text(sql["OpponentsGet"]), {"WrestlerID": wrestler["WrestlerID"], "IsWinner": None})
