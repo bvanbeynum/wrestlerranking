@@ -17,8 +17,8 @@ where	EventWrestler.id in (
 			where	Event.EventDate > getdate() - 720
 		)
 		and (
-			EventWrestlerMatch.ModifiedDate >= dateadd(day, -180, getdate())
-			or EventWrestler.ModifiedDate >= dateadd(day, -180, getdate())
+			EventWrestlerMatch.ModifiedDate >= dateadd(day, -14, getdate())
+			or EventWrestler.ModifiedDate >= dateadd(day, -14, getdate())
 		)
 group by
 		EventWrestler.ID
