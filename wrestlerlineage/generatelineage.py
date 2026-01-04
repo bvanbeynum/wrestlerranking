@@ -149,7 +149,6 @@ for school in schools:
 			errorLogging(f"Error getting opponents: {error}")
 			continue
 		
-		millWrestler["lineage"] = []
 		allLineages = []
 		for opponent in opponents:
 			packet = {
@@ -187,22 +186,38 @@ for school in schools:
 			lineageDistinct = list(shortestLineages.values())
 
 			if lineageDistinct:
-				lineagesForSorting = []
+				winning_lineages = []
+				losing_lineages = []
 				for path in lineageDistinct:
-					# Calculate average event date for each lineage path
+					if path and path[0]["isWinner"]:
+						winning_lineages.append(path)
+					else:
+						losing_lineages.append(path)
+				
+				winningLineagesForSorting = []
+				for path in winning_lineages:
 					timestamps = [datetime.datetime.strptime(match["eventDate"], "%Y-%m-%d").timestamp() for match in path]
 					if timestamps:
 						avgTimestamp = sum(timestamps) / len(timestamps)
-						lineagesForSorting.append((len(path), avgTimestamp, path))
-
-				# Sort by shortest path (ascending), then by most recent average date (descending)
-				lineagesForSorting.sort(key=lambda item: (item[0], -item[1]))
+						winningLineagesForSorting.append((len(path), avgTimestamp, path))
 				
-				# Keep only the top 10
-				millWrestler["lineage"] = [item[2] for item in lineagesForSorting[:10]]		
+				winningLineagesForSorting.sort(key=lambda item: (item[0], -item[1]))
+				millWrestler["winningLineages"] = [item[2] for item in winningLineagesForSorting[:10]]
 
-		if len(millWrestler["lineage"]) > 0:
-			logMessage(f"Saving wrestler. {len(millWrestler['lineage'])} Lineages")
+				losingLineagesForSorting = []
+				for path in losing_lineages:
+					timestamps = [datetime.datetime.strptime(match["eventDate"], "%Y-%m-%d").timestamp() for match in path]
+					if timestamps:
+						avgTimestamp = sum(timestamps) / len(timestamps)
+						losingLineagesForSorting.append((len(path), avgTimestamp, path))
+
+				losingLineagesForSorting.sort(key=lambda item: (item[0], -item[1]))
+				millWrestler["losingLineages"] = [item[2] for item in losingLineagesForSorting[:10]]
+				if "lineage" in millWrestler:
+					del millWrestler["lineage"]
+
+		if len(millWrestler.get("winningLineages", [])) > 0 or len(millWrestler.get("losingLineages", [])) > 0:
+			logMessage(f"Saving wrestler. {len(millWrestler.get('winningLineages', []))} winning and {len(millWrestler.get('losingLineages', []))} losing Lineages")
 			response = requests.post(f"{ config['millServer'] }/data/wrestler", json={ "wrestler": millWrestler })
 
 			if response.status_code >= 400:
