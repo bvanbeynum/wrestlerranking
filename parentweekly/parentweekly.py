@@ -274,7 +274,7 @@ def loadSQLData(loadDate):
 
 		cn.execute(sqlalchemy.text(sql["CreateTemp"]))
 
-		params = { "loadDate": loadDate }
+		params = { "loadDate": loadDate.strftime("%Y-%m-%d") }
 		cn.execute(sqlalchemy.text(sql["LoadTemp"]), params)
 
 		logMessage("Load Placers")
