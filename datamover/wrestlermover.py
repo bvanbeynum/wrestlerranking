@@ -72,6 +72,8 @@ if len(mongoWrestlers) > 0:
 
 print(f"{ currentTime() }: Load wrestlers")
 
+modifiedTimespan = -14
+wrestledTimespan = -720
 offset = 0
 batchSize = 5000  # Adjust batch size as needed
 wrestlersCompleted = 0
@@ -80,7 +82,7 @@ rowIndex = 0
 errorCount = 0
 
 while True:
-	cur.execute(sql["WrestlersLoad"], (offset, batchSize))
+	cur.execute(sql["WrestlersLoad"], (modifiedTimespan, wrestledTimespan, offset, batchSize))
 	wrestlers_batch = cur.fetchall()
 	print(f"{ currentTime() }: { batchSize } wrestlers loaded")
 
@@ -117,9 +119,10 @@ while True:
 			"name": wrestlerRow.WrestlerName,
 			"rating": float(wrestlerRow.Rating) if wrestlerRow.Rating is not None else None,
 			"deviation": float(wrestlerRow.Deviation) if wrestlerRow.Deviation is not None else None,
+			"searchNames": wrestlerRow.SearchNames,
+			"searchTeams": wrestlerRow.SearchTeams,
 			"events": [],
 			"ratingHistory": []
-			# "lineage": [],
 		}
 
 		# Add id if a match is found in wrestlerLookup
