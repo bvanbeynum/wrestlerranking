@@ -119,8 +119,8 @@ while True:
 			"name": wrestlerRow.WrestlerName,
 			"rating": float(wrestlerRow.Rating) if wrestlerRow.Rating is not None else None,
 			"deviation": float(wrestlerRow.Deviation) if wrestlerRow.Deviation is not None else None,
-			"searchNames": wrestlerRow.SearchNames,
-			"searchTeams": wrestlerRow.SearchTeams,
+			# "searchNames": wrestlerRow.SearchNames,
+			# "searchTeams": wrestlerRow.SearchTeams,
 			"events": [],
 			"ratingHistory": []
 		}
