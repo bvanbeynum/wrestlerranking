@@ -127,8 +127,6 @@ for school in schools:
 			continue
 	
 	for wrestler in wrestlers:
-		logMessage(f"Process wrestler { wrestler['WrestlerName'] }")
-
 		response = requests.get(f"{ config['millServer'] }/data/wrestler?sqlid={ wrestler['WrestlerID'] }")
 		if response.status_code >= 400:
 			errorLogging(f"Error getting wrestler: {response.text}")
@@ -202,7 +200,7 @@ for school in schools:
 						winningLineagesForSorting.append((len(path), avgTimestamp, path))
 				
 				winningLineagesForSorting.sort(key=lambda item: (item[0], -item[1]))
-				millWrestler["winningLineages"] = [item[2] for item in winningLineagesForSorting[:10]]
+				millWrestler["lineage"] = [item[2] for item in winningLineagesForSorting[:10]]
 
 				losingLineagesForSorting = []
 				for path in losing_lineages:
@@ -212,15 +210,15 @@ for school in schools:
 						losingLineagesForSorting.append((len(path), avgTimestamp, path))
 
 				losingLineagesForSorting.sort(key=lambda item: (item[0], -item[1]))
-				millWrestler["losingLineages"] = [item[2] for item in losingLineagesForSorting[:10]]
-				if "lineage" in millWrestler:
-					del millWrestler["lineage"]
+				millWrestler["lineage"] += [item[2] for item in losingLineagesForSorting[:10]]
 
-		if len(millWrestler.get("winningLineages", [])) > 0 or len(millWrestler.get("losingLineages", [])) > 0:
-			logMessage(f"Saving wrestler. {len(millWrestler.get('winningLineages', []))} winning and {len(millWrestler.get('losingLineages', []))} losing Lineages")
+		if len(millWrestler.get("lineage", [])) > 0:
+			logMessage(f"{ wrestler['WrestlerName'] } save {len(millWrestler.get('lineage', []))} lineages")
 			response = requests.post(f"{ config['millServer'] }/data/wrestler", json={ "wrestler": millWrestler })
 
 			if response.status_code >= 400:
 				errorLogging(f"Error updating wrestler: {response.text}")
+		else:
+			logMessage(f"{ wrestler['WrestlerName'] } no lineages")
 
 logMessage(f"------------- Complete")
