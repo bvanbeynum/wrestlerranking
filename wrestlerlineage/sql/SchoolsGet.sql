@@ -6,5 +6,6 @@ where	School.Classification is not null
 		and School.SchoolName <> 'fort mill'
 		-- and school.id = 65
 order by
-		School.Classification desc
+		case when School.Region = 3 and School.Classification like '5A%' then 1 else 2 end
+		, trim(substring(School.Classification, 1, 2)) desc
 		, School.Region
