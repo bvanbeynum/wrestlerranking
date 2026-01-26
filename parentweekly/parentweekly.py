@@ -208,6 +208,7 @@ def loadEvents(loadDate, sheetsService):
 	varsityEvents = []
 	jvEvents = []
 	msEvents = []
+	girlsEvents = []
 
 	for row in allrows:
 		# Skip empty rows
@@ -254,11 +255,21 @@ def loadEvents(loadDate, sheetsService):
 				"address": row[6]
 			})
 	
+		elif len(row) > 6 and row[0] == "Girls":
+			girlsEvents.append({
+				"date": row[2],
+				"time": row[3],
+				"event": row[4],
+				"location": row[5],
+				"address": row[6]
+			})
+	
 	logMessage(f"Varsity: {len(varsityEvents)}, JV: {len(jvEvents)}, Middle: {len(msEvents)}")
 
 	calendars["varsity"] = pd.DataFrame(varsityEvents)
 	calendars["jv"] = pd.DataFrame(jvEvents)
 	calendars["ms"] = pd.DataFrame(msEvents)
+	calendars["girls"] = pd.DataFrame(girlsEvents)
 
 	return calendars
 
@@ -457,6 +468,12 @@ JV
 
 Middle School
 {calendarResults["ms"].to_html(index=False, classes="table")}
+"""
+	
+	if len(calendarResults["girls"]) > 0:
+		prompt += f"""
+Girls
+{calendarResults["girls"].to_html(index=False, classes="table")}
 """
 
 	if len(dualResults) > 0:
